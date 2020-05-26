@@ -3,19 +3,19 @@
 #include <vector>
 
 class Mail {
-	pulic:
-		Mail(string _from, string _to, string _date, int _id, string _subject) : from(_from), to(_to), date(_date), id(_id), subject(_subject);
-		add(string path);
+	public:
+		Mail(std::string _from, std::string _to, std::string _date, int _id, std::string _subject) : from(_from), to(_to), date(_date), id(_id), subject(_subject);
+		add(std::string path);
 		remove(int target_id);
 		longest();
-		setContent(string readin); // split the original content into clean-words. (also set char_count)
+		setContent(std::string readin); // split the original content into clean-words. (also set char_count)
 
 	private:
-		string from;
-		string to;
-		string date;
+		std::string from;
+		std::string to;
+		std::string date;
 		int id;
-		string subject;
-		vector<string> content;
+		std::string subject;
+		std::vector<std::string> content;
 		int char_count;
 };
