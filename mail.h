@@ -7,7 +7,7 @@ using std::vector;
 class MailBox;
 class Mail;
 
-class MailBox : public Mail {
+class MailBox : public Mail { // storage for Mail, also has access to call the attributes of Mail.
 
 	public:
 		MailBox() : database(0); 
@@ -19,7 +19,7 @@ class MailBox : public Mail {
 		vector<Mail> database;
 };
 
-class Mail {
+class Mail { // store the infomation of a mail.
 
 	public:
 		Mail(string _from, string _to, string _date, int _id, string _subject) : from(_from), to(_to), date(_date), id(_id), subject(_subject);
