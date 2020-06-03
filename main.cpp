@@ -10,9 +10,9 @@ void execute(string operation) {
 	} else if ( operation == "remove" ) {
 		int target_id;
 		cin >> target_id;
-		mailbox.remove(target_id);
+		/* mailbox.remove(target_id); */
 	} else if ( operation == "longest" ) {
-		mailbox.longest();
+		/* mailbox.longest(); */
 	} else {
 		// the query operation.	
 	}
@@ -20,7 +20,7 @@ void execute(string operation) {
 
 int main(void) {
 	string operation; 
-	while ( std::getline(cin, operation) ) {
+	while ( cin >> operation ) {
 		execute(operation);	
 	}
 	return 0;
