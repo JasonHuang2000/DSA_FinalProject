@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <algorithm> // make_heap(), push_heap(), pop_heap().
-#include <set> // std::multiset (rb-tree)
+#include <map> // std::multiset (rb-tree)
 #include <unordered_map> // std::unordered_multimap (hash-table)
 #include <functional>
 
@@ -12,20 +12,7 @@ class MailBox;
 struct Mail;
 struct RbElem;
 struct HeapElem;
-
-class MailBox { // storage for Mail.
-
-	public:
-		/* MailBox() { make_heap(heap.begin(), heap.end()); } */
-		void add(string path);
-		/* void remove(int target_id); */
-		/* void longest(); */
-	
-	private:
-		unordered_multimap<string, Mail> hash_table;
-		multiset<RbElem, less<RbElem>> rb_tree;
-		vector<HeapElem> heap;
-};
+bool heap_comp(HeapElem& hp1, HeapElem& hp2);
 
 struct Mail { // store the infomation of a mail.
 	// variable
@@ -48,8 +35,6 @@ struct RbElem { // Elements of Rb-tree(multiset).
 	int*  date;
 	// function
 	RbElem(int _id, int _count, string _from, int* _date) : id(_id), char_count(_count), from(_from), date(_date) {}
-	bool operator < (const RbElem& rb) { return id < rb.id; }
-	bool operator > (const RbElem& rb) { return id > rb.id; }
 	void rbElemInfo();
 };
 
@@ -59,7 +44,20 @@ struct HeapElem { // Elements of max-heap.
 	int char_count;
 	// function
 	HeapElem(int _id, int _count) : id(_id), char_count(_count) {}
-	bool operator < (const HeapElem& hp) { return char_count < hp.char_count; }
-	bool operator > (const HeapElem& hp) { return char_count > hp.char_count; }
+};
+
+
+class MailBox { // storage for Mail.
+
+	public:
+		void add(string path);
+		/* void remove(int target_id); */
+		/* void longest(); */
+		void heapify() { make_heap(heap.begin(), heap.end(), heap_comp); }
+	
+	private:
+		unordered_multimap<string, Mail> hash_table;
+		map<int, RbElem> rb_tree;
+		vector<HeapElem> heap;
 };
 

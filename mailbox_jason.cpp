@@ -67,7 +67,7 @@ void processInput( string& path, string& from, string& to, int* date, int& id, i
 }
 
 void MailBox::add(string path) {
-	month2int["Jan"] = 1; month2int["Feb"] = 2; month2int["Mar"] = 3; month2int["Apr"] = 4; month2int["May"] = 5; month2int["Jun"] = 6; month2int["Jul"] = 7; month2int["Aug"] = 8; month2int["Sep"] = 9; month2int["Oct"] = 10; month2int["Nov"] = 11; month2int["Dec"] = 12;
+	month2int["January"] = 1; month2int["February"] = 2; month2int["March"] = 3; month2int["April"] = 4; month2int["May"] = 5; month2int["June"] = 6; month2int["July"] = 7; month2int["August"] = 8; month2int["September"] = 9; month2int["October"] = 10; month2int["November"] = 11; month2int["December"] = 12;
 	string from, to;
 	int* date = (int*)malloc(sizeof(int)*4);
 	int id, char_count = 0;
@@ -76,12 +76,19 @@ void MailBox::add(string path) {
 	// construct element.
 	Mail mail(from, to, date, id, char_count, keywords);
 	RbElem rbElem(id, char_count, from, date);	
+	HeapElem heapElem(id, char_count);
 
 	// add element.
-	hash_table.insert({from, mail});
+	pair<string, Mail> h_pair (from, mail);
+	hash_table.insert(h_pair);
 	hash_table.find(from)->second.mailInfo();
-	rb_tree.insert(rbElem);
-	rb_tree.find
+
+	pair<int, RbElem> r_pair (id, rbElem);
+	rb_tree.insert(r_pair);
+	
+	heap.push_back(heapElem);
+	push_heap(heap.begin(), heap.end(), heap_comp);
+	printf("First element: (%d, %d)\n", heap[0].id, heap[0].char_count);
 
 	keywords.clear();
 }

@@ -20,6 +20,7 @@ void execute(string operation) {
 
 int main(void) {
 	string operation; 
+	mailbox.heapify();
 	while ( cin >> operation ) {
 		execute(operation);	
 	}

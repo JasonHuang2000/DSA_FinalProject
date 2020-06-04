@@ -26,4 +26,4 @@ void RbElem::rbElemInfo() {
 	printf("--------------------------------------------------\n");
 }
 
-
+bool heap_comp(HeapElem& hp1, HeapElem& hp2) { return hp1.char_count < hp2.char_count; }
