@@ -6,13 +6,16 @@ void execute(string operation) {
 	if ( operation == "add" ) {
 		string filePath;
 		cin >> filePath;
+		/* cout << "add " << filePath << endl; */
 		mailbox.add(filePath);	
 	} else if ( operation == "remove" ) {
 		int target_id;
 		cin >> target_id;
-		/* mailbox.remove(target_id); */
+		/* cout << "remove " << target_id << endl; */
+		mailbox.remove(target_id);
 	} else if ( operation == "longest" ) {
-		/* mailbox.longest(); */
+		/* cout << "longest" << endl; */
+		mailbox.longest();
 	} else {
 		// the query operation.	
 	}
@@ -20,7 +23,6 @@ void execute(string operation) {
 
 int main(void) {
 	string operation; 
-	mailbox.heapify();
 	while ( cin >> operation ) {
 		execute(operation);	
 	}

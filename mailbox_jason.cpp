@@ -3,11 +3,13 @@
 #include <map>
 #include <sstream>
 #include <cctype>
+#include <unordered_set>
 
 map<string, int> month2int;
 vector<string> keywords;
+unordered_set<int> ID_visited;
 
-void processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, vector<string>& keywords ) {
+int processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, vector<string>& keywords ) {
 	ifstream fin(path);
 	if ( fin.is_open() ) {
 		string line;
@@ -31,6 +33,7 @@ void processInput( string& path, string& from, string& to, int* date, int& id, i
 		// id
 		getline(fin, line);
 		id = stoi(line.substr(12));
+		if ( ID_visited.find(id) != ID_visited.end() ) return 0;
 		// subject
 		getline(fin, line);
 		string tmp = line.substr(9);
@@ -64,6 +67,7 @@ void processInput( string& path, string& from, string& to, int* date, int& id, i
 		}
 	}
 	fin.close();
+	return 1;
 }
 
 void MailBox::add(string path) {
@@ -71,24 +75,49 @@ void MailBox::add(string path) {
 	string from, to;
 	int* date = (int*)malloc(sizeof(int)*4);
 	int id, char_count = 0;
-	processInput(path, from, to, date, id, char_count, keywords);
+	if ( processInput(path, from, to, date, id, char_count, keywords) ) {
+		ID_visited.insert(id);
+		printf("%lu\n", ID_visited.size());
+	 } else printf("-\n");
 	
 	// construct element.
 	Mail mail(from, to, date, id, char_count, keywords);
 	RbElem rbElem(id, char_count, from, date);	
-	HeapElem heapElem(id, char_count);
 
 	// add element.
 	pair<string, Mail> h_pair (from, mail);
 	hash_table.insert(h_pair);
-	hash_table.find(from)->second.mailInfo();
 
 	pair<int, RbElem> r_pair (id, rbElem);
 	rb_tree.insert(r_pair);
 	
-	heap.push_back(heapElem);
-	push_heap(heap.begin(), heap.end(), heap_comp);
-	printf("First element: (%d, %d)\n", heap[0].id, heap[0].char_count);
+	Lgst.insert(char_count, id);
 
 	keywords.clear();
+}
+
+void MailBox::remove(int target_id) {
+	auto r_pair = rb_tree.find(target_id);
+	if ( r_pair == rb_tree.end() )
+		printf("-\n");
+	else {
+		rb_tree.erase(r_pair);
+		Lgst.remove(r_pair->second.char_count);
+		for ( auto pos = hash_table.find(r_pair->second.from); pos != hash_table.end(); ++pos ) {
+			if ( pos->second.id == r_pair->second.id ) {
+				hash_table.erase(pos);
+				break;
+			}
+		}
+		ID_visited.erase(r_pair->second.id);
+		printf("%lu\n", ID_visited.size());
+	}
+}
+
+void MailBox::longest() {
+	node* ptr = Lgst.MaxElem();
+	if ( ptr == NULL )
+		printf("-\n");
+	else
+		printf("%d\n", ptr->id);
 }
