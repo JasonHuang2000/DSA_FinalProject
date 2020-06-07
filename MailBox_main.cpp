@@ -1,4 +1,4 @@
-#include "mail.h"
+#include "MailBox.hpp"
 
 MailBox mailbox; // the main storage for object Mail.
 

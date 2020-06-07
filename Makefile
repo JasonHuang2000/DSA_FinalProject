@@ -1,22 +1,19 @@
 CC:=g++ -std=c++17
-obj:=element_jason.o mailbox_jason.o main.o avlTree.o
-exe:=jason
+obj:= AVLTree.o MailBox_func.o MailBox_main.o 
+exe:=MailBox
 
 .PHONY: all clean
 
 $(exe): $(obj)
 	$(CC) $(obj) -o $(exe)
 
-element_jason.o: element_jason.cpp
+AVLTree.o: AVLTree.cpp
 	$(CC) -c $^ -o $@
 
-mailbox_jason.o: mailbox_jason.cpp
+MailBox_func.o: MailBox_func.cpp
 	$(CC) -c $^ -o $@
 
-main.o: main.cpp
-	$(CC) -c $^ -o $@
-
-avlTree.o: avlTree.cpp
+MailBox_main.o: MailBox_main.cpp
 	$(CC) -c $^ -o $@
 
 clean: 

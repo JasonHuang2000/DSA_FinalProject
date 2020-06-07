@@ -1,4 +1,4 @@
-#include "mail.h"
+#include "MailBox.hpp"
 #include <fstream>
 #include <map>
 #include <sstream>
@@ -81,17 +81,22 @@ void MailBox::add(string path) {
 	 } else printf("-\n");
 	
 	// construct element.
-	Mail mail(from, to, date, id, char_count, keywords);
+	/* Mail mail(from, to, date, id, char_count, keywords); */
 	RbElem rbElem(id, char_count, from, date);	
 
 	// add element.
-	pair<string, Mail> h_pair (from, mail);
-	hash_table.insert(h_pair);
+	/* auto h_ptr = hash_table.find(from); */
+	/* if ( h_ptr == hash_table.end() ) { */
+	/* 	pair<string, Mail> h_pair (from, mail); */
+	/* 	hash_table.insert(h_pair); */
+	/* } else { */
+
+	/* } */
 
 	pair<int, RbElem> r_pair (id, rbElem);
 	rb_tree.insert(r_pair);
-	
-	Lgst.insert(char_count, id);
+
+	avl_tree.insert(char_count, id);
 
 	keywords.clear();
 }
@@ -102,22 +107,49 @@ void MailBox::remove(int target_id) {
 		printf("-\n");
 	else {
 		rb_tree.erase(r_pair);
-		Lgst.remove(r_pair->second.char_count);
-		for ( auto pos = hash_table.find(r_pair->second.from); pos != hash_table.end(); ++pos ) {
-			if ( pos->second.id == r_pair->second.id ) {
-				hash_table.erase(pos);
-				break;
-			}
-		}
+		avl_tree.erase(r_pair->second.char_count);
+		/* printf("hi\n"); */
+		/* for ( auto pos = hash_table.find(bucket_idx); pos != hash_table.end(bucket_idx); ++pos ) { */
+		/* 	if ( pos->second.id == r_pair->second.id ) { */
+		/* 		hash_table.erase(pos); */
+		/* 		break; */
+		/* 	} */
+		/* } */
 		ID_visited.erase(r_pair->second.id);
 		printf("%lu\n", ID_visited.size());
 	}
 }
 
 void MailBox::longest() {
-	node* ptr = Lgst.MaxElem();
-	if ( ptr == NULL )
+	int lgst_id = avl_tree.longest();
+	if ( lgst_id == 0 )
 		printf("-\n");
 	else
-		printf("%d\n", ptr->id);
+		printf("%d\n", lgst_id);
+}
+
+void Mail::mailInfo() {
+	printf("--------------------------------------------------\n");
+	printf("                  Mail Info                       \n");
+	printf("--------------------------------------------------\n");
+	cout << "From      " << from << endl;
+	cout << "To        " << to << endl;
+	cout << "Date      " << date[0] << '/' << date[1] << '/' << date[2] << ' ' << date[3] << endl;
+	cout << "Mail-id   " << id << endl;
+	printf("--------------------------------------------------\n");
+	printf("There are %d alphanumeric chracters in the mail.\n", char_count);
+	printf("There are %lu keywords in the mail.\n", keywords.size());
+	printf("--------------------------------------------------\n");
+}
+
+void RbElem::rbElemInfo() { 
+	printf("--------------------------------------------------\n");
+	printf("                 RbElem Info                      \n");
+	printf("--------------------------------------------------\n");
+	cout << "From      " << from << endl;
+	cout << "Date      " << date[0] << '/' << date[1] << '/' << date[2] << ' ' << date[3] << endl;
+	cout << "Mail-id   " << id << endl;
+	printf("--------------------------------------------------\n");
+	printf("There are %d alphanumeric chracters in the mail.\n", char_count);
+	printf("--------------------------------------------------\n");
 }
