@@ -1,10 +1,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <algorithm> // make_heap(), push_heap(), pop_heap().
 #include <map> // std::multiset (rb-tree)
-#include <functional>
 #include <unordered_set>
+#include <stack>
+#include <algorithm>
 
 using namespace std;
 
@@ -12,8 +12,6 @@ class MailBox;
 struct Mail;
 struct FromElem;
 struct ToElem;
-
-bool dateComp(int* a, int* b);
 
 struct Mail { // store the infomation of a mail.
 	// variable
@@ -32,12 +30,20 @@ struct FromElem {
 	int id;
 	string to;
 	int* date;	
-	FromElem(int id, string to, int* date) : id(id), to(to), date(date) {}
+	FromElem* next;
+
+	FromElem(int id, string to, int* date) : id(id), to(to), date(date), next(NULL) {}
+	void insert(FromElem* fe);
+	void erase(int id);
 };
 struct ToElem {
 	int id;
 	int *date;
-	ToElem(int id, int* date) : id(id), date(date) {}
+	ToElem* next;
+
+	ToElem(int id, int* date) : id(id), date(date), next(NULL) {}
+	void insert(ToElem* te);
+	void erase(int id);
 };
 
 template <class T>
@@ -71,14 +77,14 @@ public:
     ~AVLTree();
     
     void insert(T value, int id);
-    void erase(T value);
+    void erase(T value, int id);
     
     void clear();
     bool empty() const;
     int size() const;
     int find(T value) const;
     const T& find_max() const;
-	int longest();
+	void longest();
 };
 
 class MailBox { // storage for Mail.
@@ -90,9 +96,10 @@ class MailBox { // storage for Mail.
 		AVLTree<int> charCountSet;
 
 	public:
-		void add(string path);
+		void add(string& path);
 		void remove(int target_id);
 		void longest();
+		/* void query(string& from, string& to, int* start, int* end, ); */ 
 		~MailBox() { 
 			mailSet.clear();
 			fromSet.clear();
@@ -101,3 +108,4 @@ class MailBox { // storage for Mail.
 		}
 };
 
+bool dateComp(int* a, int* b);

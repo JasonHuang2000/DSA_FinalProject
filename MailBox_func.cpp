@@ -1,11 +1,24 @@
 #include "MailBox.hpp"
 #include <fstream>
-#include <map>
 #include <sstream>
 #include <cctype>
 
 map<string, int> month2int;
 unordered_set<int> ID_visited;
+
+bool dateComp(int* a, int* b) {
+	if ( a[0] < b[0] ) return true;
+	else if ( a[0] == b[0] ) {
+		if ( a[1] < b[1] ) return true;
+		else if ( a[1] == b[1] ) {
+			if ( a[2] < b[2] ) return true;
+			else if ( a[2] == b[2] ) {
+				if ( a[3] < b[3] ) return true;
+			}
+		}
+	}
+	return false;	
+}
 
 int processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, unordered_set<string>& keywords ) {
 	ifstream fin(path);
@@ -68,7 +81,8 @@ int processInput( string& path, string& from, string& to, int* date, int& id, in
 	return 1;
 }
 
-void MailBox::add(string path) {
+// MailBox function
+void MailBox::add(string& path) {
 	month2int["January"] = 1; month2int["February"] = 2; month2int["March"] = 3; month2int["April"] = 4; month2int["May"] = 5; month2int["June"] = 6; month2int["July"] = 7; month2int["August"] = 8; month2int["September"] = 9; month2int["October"] = 10; month2int["November"] = 11; month2int["December"] = 12;
 	string from, to;
 	int* date = (int*)malloc(sizeof(int)*4);
@@ -86,8 +100,16 @@ void MailBox::add(string path) {
 
 	// add element.
 	mailSet.insert(pair<int, Mail>(id, mail));
-	fromSet.insert(pair<string, FromElem>(from, fromElem));
-	toSet.insert(pair<string, ToElem>(to, toElem));
+	auto fpos = fromSet.find(from);
+	if ( fpos == fromSet.end() )
+		fromSet.insert(pair<string, FromElem>(from, fromElem));
+	else
+		fpos->second.insert(&fromElem);
+	auto tpos = toSet.find(to);
+	if ( tpos == toSet.end() )
+		toSet.insert(pair<string, ToElem>(to, toElem));
+	else
+		tpos->second.insert(&toElem);
 	charCountSet.insert(char_count, id);
 
 	keywords.clear();
@@ -98,21 +120,24 @@ void MailBox::remove(int target_id) {
 	if ( mail_pair == mailSet.end() )
 		printf("-\n");
 	else {
-		fromSet.erase(mail_pair->second.from);
-		toSet.erase(mail_pair->second.to);
+		mailSet.erase(mail_pair);
+		auto fpos = fromSet.find(mail_pair->second.from);
+		if ( fpos->second.next == NULL ) fromSet.erase(mail_pair->second.from);
+		else fpos->second.erase(target_id);
+		auto tpos = toSet.find(mail_pair->second.to);
+		if ( tpos->second.next == NULL ) toSet.erase(mail_pair->second.to);
+		else tpos->second.erase(target_id);
+		charCountSet.erase(mail_pair->second.char_count, mail_pair->second.id);
 		ID_visited.erase(target_id);
 		printf("%lu\n", ID_visited.size());
 	}
 }
 
 void MailBox::longest() {
-	int lgst_id = charCountSet.longest();
-	if ( lgst_id == 0 )
-		printf("-\n");
-	else
-		printf("%d\n", lgst_id);
+	charCountSet.longest();
 }
 
+// Element Function
 void Mail::mailInfo() {
 	printf("--------------------------------------------------\n");
 	printf("                  Mail Info                       \n");
@@ -127,16 +152,47 @@ void Mail::mailInfo() {
 	printf("--------------------------------------------------\n");
 }
 
-bool dateComp(int* a, int* b) {
-	if ( a[0] < b[0] ) return true;
-	else if ( a[0] == b[0] ) {
-		if ( a[1] < b[1] ) return true;
-		else if ( a[1] == b[1] ) {
-			if ( a[2] < b[2] ) return true;
-			else if ( a[2] == b[2] ) {
-				if ( a[3] < b[3] ) return true;
-			}
-		}
+void FromElem::insert(FromElem* fe) {
+	FromElem* cur = this;
+	while ( cur != NULL ) {
+		cur = cur->next;
 	}
-	return false;	
+	cur = fe;
+}
+void FromElem::erase(int id) {
+	FromElem* cur = this;
+	FromElem* prev = this;
+	while ( cur->id != id ) {
+		prev = cur;
+		cur = cur->next;
+	}
+	if ( cur == prev ) {
+		cur->id = cur->next->id;
+		cur->to = cur->next->to;
+		cur->date = cur->next->date;
+		cur->next = cur->next->next;
+	} else prev->next = cur->next;
+	delete cur;	
+}
+
+void ToElem::insert(ToElem* te) {
+	ToElem* cur = this;
+	while ( cur != NULL ) {
+		cur = cur->next;
+	}
+	cur = te;
+}
+void ToElem::erase(int id) {
+	ToElem* cur = this;
+	ToElem* prev = this;
+	while ( cur->id != id ) {
+		prev = cur;
+		cur = cur->next;
+	}
+	if ( cur == prev ) {
+		cur->id = cur->next->id;
+		cur->date = cur->next->date;
+		cur->next = cur->next->next;
+	} else prev->next = cur->next;
+	delete cur;	
 }
