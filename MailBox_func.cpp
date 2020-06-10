@@ -5,6 +5,7 @@
 
 map<string, int> month2int;
 unordered_set<int> ID_visited;
+char op[5] = { '(', ')', '!', '&', '|' };
 
 bool dateComp(int* a, int* b) {
 	if ( a[0] < b[0] ) return true;
@@ -51,7 +52,7 @@ int processInput( string& path, string& from, string& to, int* date, int& id, in
 		string word;
 		for ( int i = 0; i < tmp.size(); i++ ) {
 			if ( isalnum(tmp[i]) ) {
-				word += tmp[i];
+				word += tolower(tmp[i]);
 				char_count++;
 			}
 			else if ( word.empty() == false ) {
@@ -67,7 +68,7 @@ int processInput( string& path, string& from, string& to, int* date, int& id, in
 		while ( getline(fin, line) ) {
 			for ( int i = 0; i < line.size(); i++ ) {
 				if ( isalnum(line[i]) ) {
-					word += line[i];
+					word += tolower(line[i]);
 					char_count++;
 				}
 				else if ( word.empty() == false ) {
@@ -79,6 +80,57 @@ int processInput( string& path, string& from, string& to, int* date, int& id, in
 	}
 	fin.close();
 	return 1;
+}
+
+int getOperator(char c) {
+	for ( int i = 0; i < 5; i++ ) {
+		if ( c == op[i] ) return i; 
+	}
+	return -1;
+}
+void processQuery(string& input, string& from, string& to, int* start, int* end , vector<char>& oprtor, vector<string>& keywords) {
+	stringstream ss(input);		
+	string token;
+	while ( getline(ss, token, ' ') ) {
+		if ( token[0] == '-' ) {
+			if ( token[1] == 'f' ) {
+				size_t pos = token.find_last_not_of('"');
+				from = token.substr(3, pos-2);
+			} else if ( token[1] == 't' ) {
+				size_t pos = token.find_last_not_of('"');
+				to = token.substr(3, pos-2);
+			} else {
+				size_t pos = token.find_first_of('~');
+				if ( pos > 2 ) {
+					start[0] = stoi(token.substr(2,4));
+					start[1] = stoi(token.substr(6,2));
+					start[2] = stoi(token.substr(8,2));
+					start[3] = stoi(token.substr(10,4));
+				}
+				if ( token.size() - 1 > pos ) {
+					token = token.substr(pos+1, 12);
+					end[0] = stoi(token.substr(0,4));
+					end[1] = stoi(token.substr(4,2));
+					end[2] = stoi(token.substr(6,2));
+					end[3] = stoi(token.substr(8,4));
+				}
+			}
+		} else if ( token.empty() == false ) {
+			string word;
+			int idx;
+			for ( int i = 0; i < token.size(); i++ ) {
+				if ( (idx = getOperator(token[i])) == -1 ) {
+					word += token[i];
+				} else if ( word.empty() == false ) {
+					oprtor.push_back(op[idx]);
+					keywords.push_back(word);
+					word.clear();
+				}
+			}
+			if ( word.empty() == false )
+				keywords.push_back(word);
+		}
+	}
 }
 
 // MailBox function

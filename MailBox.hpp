@@ -109,3 +109,5 @@ class MailBox { // storage for Mail.
 };
 
 bool dateComp(int* a, int* b);
+int processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, unordered_set<string>& keywords);
+void processQuery(string& input, string& from, string& to, int* start, int* end , vector<char>& oprtor, vector<string>& keywords);

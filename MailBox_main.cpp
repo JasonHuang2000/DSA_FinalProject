@@ -1,6 +1,8 @@
 #include "MailBox.hpp"
 
 MailBox mailbox; // the main storage for object Mail.
+vector<char> oprtor;
+vector<string> keywords;
 
 void execute(string operation) {
 	if ( operation == "add" ) {
@@ -17,7 +19,15 @@ void execute(string operation) {
 		/* cout << "longest" << endl; */
 		mailbox.longest();
 	} else {
-		// the query operation.	
+		string input;
+		string from = "", to = "";
+		int start[4] = { -1, -1, -1, -1 };
+		int end[4] = { -1, -1, -1, -1 };
+		getline(cin, input);
+		processQuery(input, from, to, start, end, oprtor, keywords);
+
+		oprtor.clear();
+		keywords.clear();
 	}
 }
 
