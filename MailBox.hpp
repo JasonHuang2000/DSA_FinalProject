@@ -3,8 +3,8 @@
 #include <vector>
 #include <algorithm> // make_heap(), push_heap(), pop_heap().
 #include <map> // std::multiset (rb-tree)
-#include <unordered_map> // std::unordered_multimap (hash-table)
 #include <functional>
+#include <unordered_set>
 
 using namespace std;
 
@@ -19,14 +19,13 @@ struct Mail { // store the infomation of a mail.
 	int* date;
 	int id;
 	int char_count;
-	Mail* next;
-	vector<string> keywords;
+	unordered_set<string> *keywords;
 	// function
-	Mail(string _from, string _to, int* _date, int _id, int _char_count, vector<string> _keywords) : from(_from), to(_to), date(_date), id(_id), char_count(_char_count), keywords(_keywords) { this->next = NULL; }
+	Mail(string _from, string _to, int* _date, int _id, int _char_count, unordered_set<string> *_keywords) : from(_from), to(_to), date(_date), id(_id), char_count(_char_count), keywords(_keywords) { }
 	void mailInfo();
 };
 
-struct RbElem { // Elements of Rb-tree(multiset).
+struct RbElem { // Elements of Rb-tree(map).
 	// variable
 	int id;
 	int char_count;
@@ -73,18 +72,9 @@ public:
     void clear();
     bool empty() const;
     int size() const;
-    
     int find(T value) const;
-    int lower_bound(T value) const;
-    int upper_bound(T value) const;
-    
-    const T& find_min() const;
     const T& find_max() const;
-    const T& operator[](std::size_t idx) const;
-    
 	int longest();
-
-    void display();
 };
 
 class MailBox { // storage for Mail.

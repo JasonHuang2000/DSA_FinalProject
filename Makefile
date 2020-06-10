@@ -1,10 +1,10 @@
 CC:=g++ -std=c++17
 obj:= AVLTree.o MailBox_func.o MailBox_main.o 
-exe:=MailBox
+exe:=run
 
 .PHONY: all clean
 
-$(exe): $(obj)
+all: $(obj)
 	$(CC) $(obj) -o $(exe)
 
 AVLTree.o: AVLTree.cpp

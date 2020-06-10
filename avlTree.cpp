@@ -230,77 +230,11 @@ int AVLTree<T>::find(T value) const{
 }
 
 template <class T>
-int AVLTree<T>::upper_bound(T value) const{
-    AVLTreeNode<T> *direct = root;
-    int idx = 0;
-    
-    while (direct != nullptr){
-        if (direct->value > value)
-            direct = direct->left;
-        else{
-            idx += (direct->left ? direct->left->count : 0) + 1;
-            direct = direct->right;
-        }
-    }
-    
-    return idx;
-}
-
-template <class T>
-int AVLTree<T>::lower_bound(T value) const{
-    AVLTreeNode<T> *direct = root;
-    int idx = 0;
-    
-    while (direct != nullptr){
-        if (direct->value >= value)
-            direct = direct->left;
-        else{
-            idx += (direct->left ? direct->left->count : 0) + 1;
-            direct = direct->right;
-        }
-    }
-    
-    return idx;
-}
-
-template <class T>
-const T& AVLTree<T>::find_min() const{
-    AVLTreeNode<T> *cur = root;
-    
-    while (cur->left != nullptr)
-        cur = cur->left;
-    
-    return cur->value;
-}
-
-template <class T>
 const T& AVLTree<T>::find_max() const{
     AVLTreeNode<T> *cur = root;
     
     while (cur->right != nullptr)
         cur = cur->right;
-    
-    return cur->value;
-}
-
-template <class T>
-const T& AVLTree<T>::operator[](std::size_t idx) const{
-    AVLTreeNode<T> *cur = root;
-    int left = cur->left != nullptr ? cur->left->count : 0;
-    
-    while (left != idx){
-        if (left < idx){
-            idx -= left + 1;
-            
-            cur = cur->right;
-            left = cur->left != nullptr ? cur->left->count : 0;
-        }
-        
-        else{
-            cur = cur->left;
-            left = cur->left != nullptr ? cur->left->count : 0;
-        }
-    }
     
     return cur->value;
 }
@@ -313,35 +247,6 @@ int AVLTree<T>::longest() {
 		cur = cur->right;
 	}
 	return cur->id;
-}
-
-template <class T>
-void AVLTree<T>::display(){
-    printf("\n");
-    if (root != nullptr)
-        display(root);
-    else
-        printf("Empty");
-    printf("\n");
-}
-
-template <class T>
-void AVLTree<T>::display(AVLTreeNode<T> *cur, int depth, int state){  // state: 1 -> left, 2 -> right , 0 -> root
-    if (cur->left)
-        display(cur->left, depth + 1, 1);
-    
-    for (int i=0; i < depth; i++)
-        printf("     ");
-    
-    if (state == 1) // left
-        printf("┌───");
-    else if (state == 2)  // right
-        printf("└───");
-    
-    std::cout << "[" << cur->value << "] - (" << cur->count << ", " << cur->height << ")" << std::endl;
-    
-    if (cur->right)
-        display(cur->right, depth + 1, 2);
 }
 
 

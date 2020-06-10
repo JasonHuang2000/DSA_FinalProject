@@ -3,13 +3,11 @@
 #include <map>
 #include <sstream>
 #include <cctype>
-#include <unordered_set>
 
 map<string, int> month2int;
-vector<string> keywords;
 unordered_set<int> ID_visited;
 
-int processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, vector<string>& keywords ) {
+int processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, unordered_set<string>& keywords ) {
 	ifstream fin(path);
 	if ( fin.is_open() ) {
 		string line;
@@ -44,7 +42,7 @@ int processInput( string& path, string& from, string& to, int* date, int& id, in
 				char_count++;
 			}
 			else if ( word.empty() == false ) {
-				keywords.push_back(word);
+				keywords.insert(word);
 				word.clear();
 			}
 		}
@@ -60,7 +58,7 @@ int processInput( string& path, string& from, string& to, int* date, int& id, in
 					char_count++;
 				}
 				else if ( word.empty() == false ) {
-					keywords.push_back(word);
+					keywords.insert(word);
 					word.clear();
 				}
 			}
@@ -75,13 +73,14 @@ void MailBox::add(string path) {
 	string from, to;
 	int* date = (int*)malloc(sizeof(int)*4);
 	int id, char_count = 0;
+	unordered_set<string> keywords;
 	if ( processInput(path, from, to, date, id, char_count, keywords) ) {
 		ID_visited.insert(id);
 		printf("%lu\n", ID_visited.size());
 	 } else printf("-\n");
 	
 	// construct element.
-	/* Mail mail(from, to, date, id, char_count, keywords); */
+	Mail mail(from, to, date, id, char_count, &keywords);
 	RbElem rbElem(id, char_count, from, date);	
 
 	// add element.
@@ -138,7 +137,7 @@ void Mail::mailInfo() {
 	cout << "Mail-id   " << id << endl;
 	printf("--------------------------------------------------\n");
 	printf("There are %d alphanumeric chracters in the mail.\n", char_count);
-	printf("There are %lu keywords in the mail.\n", keywords.size());
+	printf("There are %lu keywords in the mail.\n", keywords->size());
 	printf("--------------------------------------------------\n");
 }
 
