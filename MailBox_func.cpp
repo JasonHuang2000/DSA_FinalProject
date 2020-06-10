@@ -81,46 +81,32 @@ void MailBox::add(string path) {
 	
 	// construct element.
 	Mail mail(from, to, date, id, char_count, &keywords);
-	RbElem rbElem(id, char_count, from, date);	
+	FromElem fromElem(id, to, date);
+	ToElem toElem(id, date);
 
 	// add element.
-	/* auto h_ptr = hash_table.find(from); */
-	/* if ( h_ptr == hash_table.end() ) { */
-	/* 	pair<string, Mail> h_pair (from, mail); */
-	/* 	hash_table.insert(h_pair); */
-	/* } else { */
-
-	/* } */
-
-	pair<int, RbElem> r_pair (id, rbElem);
-	rb_tree.insert(r_pair);
-
-	avl_tree.insert(char_count, id);
+	mailSet.insert(pair<int, Mail>(id, mail));
+	fromSet.insert(pair<string, FromElem>(from, fromElem));
+	toSet.insert(pair<string, ToElem>(to, toElem));
+	charCountSet.insert(char_count, id);
 
 	keywords.clear();
 }
 
 void MailBox::remove(int target_id) {
-	auto r_pair = rb_tree.find(target_id);
-	if ( r_pair == rb_tree.end() )
+	auto mail_pair = mailSet.find(target_id);
+	if ( mail_pair == mailSet.end() )
 		printf("-\n");
 	else {
-		rb_tree.erase(r_pair);
-		avl_tree.erase(r_pair->second.char_count);
-		/* printf("hi\n"); */
-		/* for ( auto pos = hash_table.find(bucket_idx); pos != hash_table.end(bucket_idx); ++pos ) { */
-		/* 	if ( pos->second.id == r_pair->second.id ) { */
-		/* 		hash_table.erase(pos); */
-		/* 		break; */
-		/* 	} */
-		/* } */
-		ID_visited.erase(r_pair->second.id);
+		fromSet.erase(mail_pair->second.from);
+		toSet.erase(mail_pair->second.to);
+		ID_visited.erase(target_id);
 		printf("%lu\n", ID_visited.size());
 	}
 }
 
 void MailBox::longest() {
-	int lgst_id = avl_tree.longest();
+	int lgst_id = charCountSet.longest();
 	if ( lgst_id == 0 )
 		printf("-\n");
 	else
@@ -141,14 +127,16 @@ void Mail::mailInfo() {
 	printf("--------------------------------------------------\n");
 }
 
-void RbElem::rbElemInfo() { 
-	printf("--------------------------------------------------\n");
-	printf("                 RbElem Info                      \n");
-	printf("--------------------------------------------------\n");
-	cout << "From      " << from << endl;
-	cout << "Date      " << date[0] << '/' << date[1] << '/' << date[2] << ' ' << date[3] << endl;
-	cout << "Mail-id   " << id << endl;
-	printf("--------------------------------------------------\n");
-	printf("There are %d alphanumeric chracters in the mail.\n", char_count);
-	printf("--------------------------------------------------\n");
+bool dateComp(int* a, int* b) {
+	if ( a[0] < b[0] ) return true;
+	else if ( a[0] == b[0] ) {
+		if ( a[1] < b[1] ) return true;
+		else if ( a[1] == b[1] ) {
+			if ( a[2] < b[2] ) return true;
+			else if ( a[2] == b[2] ) {
+				if ( a[3] < b[3] ) return true;
+			}
+		}
+	}
+	return false;	
 }

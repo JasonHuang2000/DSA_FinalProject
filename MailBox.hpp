@@ -10,7 +10,10 @@ using namespace std;
 
 class MailBox;
 struct Mail;
-struct RbElem;
+struct FromElem;
+struct ToElem;
+
+bool dateComp(int* a, int* b);
 
 struct Mail { // store the infomation of a mail.
 	// variable
@@ -25,15 +28,16 @@ struct Mail { // store the infomation of a mail.
 	void mailInfo();
 };
 
-struct RbElem { // Elements of Rb-tree(map).
-	// variable
+struct FromElem {
 	int id;
-	int char_count;
-	string from;
-	int*  date;
-	// function
-	RbElem(int _id, int _count, string _from, int* _date) : id(_id), char_count(_count), from(_from), date(_date) {}
-	void rbElemInfo();
+	string to;
+	int* date;	
+	FromElem(int id, string to, int* date) : id(id), to(to), date(date) {}
+};
+struct ToElem {
+	int id;
+	int *date;
+	ToElem(int id, int* date) : id(id), date(date) {}
 };
 
 template <class T>
@@ -80,18 +84,20 @@ public:
 class MailBox { // storage for Mail.
 
 	private:
-		/* unordered_map<string, Mail> hash_table; */
-		map<int, RbElem> rb_tree;
-		AVLTree<int> avl_tree;
+		map<int, Mail> mailSet;
+		map<string, FromElem> fromSet;
+		map<string, ToElem> toSet;
+		AVLTree<int> charCountSet;
 
 	public:
 		void add(string path);
 		void remove(int target_id);
 		void longest();
 		~MailBox() { 
-			/* hash_table.clear(); */
-			rb_tree.clear();
-			avl_tree.clear();
+			mailSet.clear();
+			fromSet.clear();
+			toSet.clear();
+			charCountSet.clear();
 		}
 };
 
