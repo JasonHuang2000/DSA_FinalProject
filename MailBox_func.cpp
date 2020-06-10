@@ -7,18 +7,18 @@ map<string, int> month2int;
 unordered_set<int> ID_visited;
 char op[5] = { '(', ')', '!', '&', '|' };
 
-bool dateComp(int* a, int* b) {
-	if ( a[0] < b[0] ) return true;
+bool dateComp(int* a, int* b) { // is date a happen after date b ?
+	if ( a[0] < b[0] ) return false;
 	else if ( a[0] == b[0] ) {
-		if ( a[1] < b[1] ) return true;
+		if ( a[1] < b[1] ) return false;
 		else if ( a[1] == b[1] ) {
-			if ( a[2] < b[2] ) return true;
+			if ( a[2] < b[2] ) return false;
 			else if ( a[2] == b[2] ) {
-				if ( a[3] < b[3] ) return true;
+				if ( a[3] < b[3] ) return false;
 			}
 		}
 	}
-	return false;	
+	return true;	
 }
 
 int processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, unordered_set<string>& keywords ) {
@@ -87,7 +87,7 @@ int getOperator(char c) {
 		if ( c == op[i] ) return i; 
 	}
 	return -1;
-}
+}  
 void processQuery(string& input, string& from, string& to, int* start, int* end , vector<char>& oprtor, vector<string>& keywords) {
 	stringstream ss(input);		
 	string token;
@@ -140,46 +140,50 @@ void MailBox::add(string& path) {
 	int* date = (int*)malloc(sizeof(int)*4);
 	int id, char_count = 0;
 	unordered_set<string> keywords;
-	if ( processInput(path, from, to, date, id, char_count, keywords) ) {
+	if ( processInput(path, from, to, date, id, char_count, keywords) == 0 ) { // if mail already added
+		printf("-\n");
+	} else {
 		ID_visited.insert(id);
 		printf("%lu\n", ID_visited.size());
-	 } else printf("-\n");
-	
-	// construct element.
-	Mail mail(from, to, date, id, char_count, &keywords);
-	FromElem fromElem(id, to, date);
-	ToElem toElem(id, date);
 
-	// add element.
-	mailSet.insert(pair<int, Mail>(id, mail));
-	auto fpos = fromSet.find(from);
-	if ( fpos == fromSet.end() )
-		fromSet.insert(pair<string, FromElem>(from, fromElem));
-	else
-		fpos->second.insert(&fromElem);
-	auto tpos = toSet.find(to);
-	if ( tpos == toSet.end() )
-		toSet.insert(pair<string, ToElem>(to, toElem));
-	else
-		tpos->second.insert(&toElem);
-	charCountSet.insert(char_count, id);
+		// insert element.
+		Mail mail(from, to, date, id, char_count, &keywords);
+		mailSet.insert(pair<int, Mail>(id, mail));
 
-	keywords.clear();
+		FromElem fromElem(id, to, date);
+		auto fpos = fromSet.find(from);
+		if ( fpos == fromSet.end() ) fromSet.insert(pair<string, FromElem>(from, fromElem));
+		else fpos->second.insert(&fromElem);
+
+		ToElem toElem(id, date);
+		auto tpos = toSet.find(to);
+		if ( tpos == toSet.end() ) toSet.insert(pair<string, ToElem>(to, toElem));
+		else tpos->second.insert(&toElem);
+
+		charCountSet.insert(char_count, id);
+
+		keywords.clear();
+	}
 }
 
 void MailBox::remove(int target_id) {
 	auto mail_pair = mailSet.find(target_id);
-	if ( mail_pair == mailSet.end() )
+	if ( mail_pair == mailSet.end() ) // if not found
 		printf("-\n");
 	else {
+		// mailSet
 		mailSet.erase(mail_pair);
+		// fromSet
 		auto fpos = fromSet.find(mail_pair->second.from);
 		if ( fpos->second.next == NULL ) fromSet.erase(mail_pair->second.from);
 		else fpos->second.erase(target_id);
+		// toSet
 		auto tpos = toSet.find(mail_pair->second.to);
 		if ( tpos->second.next == NULL ) toSet.erase(mail_pair->second.to);
 		else tpos->second.erase(target_id);
+		// charCountSet
 		charCountSet.erase(mail_pair->second.char_count, mail_pair->second.id);
+		
 		ID_visited.erase(target_id);
 		printf("%lu\n", ID_visited.size());
 	}
@@ -187,6 +191,27 @@ void MailBox::remove(int target_id) {
 
 void MailBox::longest() {
 	charCountSet.longest();
+}
+
+void MailBox::query(string& from, string& to, int* start, int* end, vector<char>& oprtor, vector<string>& keywords) {
+	if ( from != "" ) { // if using '-f' flag
+		auto fp = fromSet.find(from);
+		if ( fp == fromSet.end() ) printf("-\n");
+		else {
+			for ( auto p = &(fp->second); p != NULL; p = p->next ) {
+				if ( to != "" && p->to != to ) continue; // "to" not matched	
+				auto mp = mailSet.find(p->id); 
+				Mail* mptr = &(mp->second);
+				if ( start[0] != -1 && dateComp(mptr->date, start) == false ) continue; // "start" not matched
+				if ( end[0] != -1 && dateComp(end, mptr->date) == false ) continue; // "end" not matched
+				
+			}
+		}
+	} else if ( to != "" ) { // if using '-t' flag but no '-f' flag
+
+	} else { // no '-f', '-t' flags are used
+
+	}
 }
 
 // Element Function

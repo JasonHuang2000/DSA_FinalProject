@@ -27,20 +27,22 @@ struct Mail { // store the infomation of a mail.
 };
 
 struct FromElem {
+	// variable
 	int id;
 	string to;
 	int* date;	
 	FromElem* next;
-
+	// function
 	FromElem(int id, string to, int* date) : id(id), to(to), date(date), next(NULL) {}
 	void insert(FromElem* fe);
 	void erase(int id);
 };
 struct ToElem {
+	// variable
 	int id;
 	int *date;
 	ToElem* next;
-
+	// function
 	ToElem(int id, int* date) : id(id), date(date), next(NULL) {}
 	void insert(ToElem* te);
 	void erase(int id);
@@ -68,7 +70,6 @@ template <class T>
 class AVLTree {
     int _size;
     AVLTreeNode<T> *root;
-    
     void balance(std::vector<AVLTreeNode<T>**> path);
     void display(AVLTreeNode<T>* cur, int depth=0, int state=0);
     
@@ -99,7 +100,7 @@ class MailBox { // storage for Mail.
 		void add(string& path);
 		void remove(int target_id);
 		void longest();
-		/* void query(string& from, string& to, int* start, int* end, ); */ 
+		void query(string& from, string& to, int* start, int* end, vector<char>& oprtor, vector<string>& keywords); 
 		~MailBox() { 
 			mailSet.clear();
 			fromSet.clear();
@@ -108,6 +109,8 @@ class MailBox { // storage for Mail.
 		}
 };
 
+// other function
 bool dateComp(int* a, int* b);
 int processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, unordered_set<string>& keywords);
 void processQuery(string& input, string& from, string& to, int* start, int* end , vector<char>& oprtor, vector<string>& keywords);
+
