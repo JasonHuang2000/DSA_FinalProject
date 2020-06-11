@@ -122,7 +122,7 @@ void processQuery(string& input, string& from, string& to, int* start, int* end 
 				if ( (idx = getOperator(token[i])) == -1 ) {
 					word += token[i];
 				} else if ( word.empty() == false ) {
-					oprtor.push_back(op[idx]);
+					oprtor.push_back(tolower(op[idx]));
 					keywords.push_back(word);
 					word.clear();
 				}
@@ -194,6 +194,9 @@ void MailBox::longest() {
 }
 
 void MailBox::query(string& from, string& to, int* start, int* end, vector<char>& oprtor, vector<string>& keywords) {
+
+	vector<int> id_matched;
+
 	if ( from != "" ) { // if using '-f' flag
 		auto fp = fromSet.find(from);
 		if ( fp == fromSet.end() ) printf("-\n");
@@ -206,11 +209,36 @@ void MailBox::query(string& from, string& to, int* start, int* end, vector<char>
 				if ( end[0] != -1 && dateComp(end, mptr->date) == false ) continue; // "end" not matched
 				
 			}
+			if ( id_matched.empty() ) printf("-\n");
+			else {
+
+			}
 		}
 	} else if ( to != "" ) { // if using '-t' flag but no '-f' flag
+		auto tp = toSet.find(to);
+		if ( tp == toSet.end() ) printf("-\n");
+		else {
+			for ( auto p = &(tp->second); p != NULL; p = p->next ) {
+				auto mp = mailSet.find(p->id);
+				Mail* mptr = &(mp->second);
+				if ( start[0] != -1 && dateComp(mptr->date, start) == false ) continue; // "start" not matched
+				if ( end[0] != -1 && dateComp(end, mptr->date) == false ) continue; // "end" not matched
 
+			}
+			if ( id_matched.empty() ) printf("-\n");
+			else {
+
+			}
+		}
 	} else { // no '-f', '-t' flags are used
+		for ( auto p = mailSet.begin(); p != mailSet.end(); ++p ) {
+			if ( start[0] != -1 && dateComp(p->second.date, start) == false ) continue; // "start" not matched
+			if ( end[0] != -1 && dateComp(end, p->second.date) == false ) continue; // "end" not matched
+		}
+		if ( id_matched.empty() ) printf("-\n");
+		else {
 
+		}
 	}
 }
 

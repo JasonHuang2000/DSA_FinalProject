@@ -90,7 +90,7 @@ void AVLTree<T>::insert(T value, int id){
     while (*indirect != nullptr){
         path.push_back(indirect);
         
-        if ((*indirect)->value > value || ((*indirect)->value == value && (*indirect)->id > id))
+        if ((*indirect)->value > value || ((*indirect)->value == value && (*indirect)->id < id))
             indirect = &((*indirect)->left);
         else 
             indirect = &((*indirect)->right);
@@ -111,7 +111,7 @@ void AVLTree<T>::erase(T value, int id){
     while (*indirect != nullptr && !((*indirect)->value == value && (*indirect)->id == id)){
         path.push_back(indirect);
         
-        if ((*indirect)->value > value || ((*indirect)->value == value && (*indirect)->id > id))
+        if ((*indirect)->value > value || ((*indirect)->value == value && (*indirect)->id < id))
             indirect = &((*indirect)->left);
         else
             indirect = &((*indirect)->right);
@@ -242,7 +242,10 @@ const T& AVLTree<T>::find_max() const{
 template <class T>
 void AVLTree<T>::longest() {
 	AVLTreeNode<T> *cur = root;
-	if ( root == nullptr ) return;
+	if ( root == nullptr ) {
+		printf("-\n");
+		return;
+	}
 	while ( cur->right != nullptr ) {
 		cur = cur->right;
 	}
