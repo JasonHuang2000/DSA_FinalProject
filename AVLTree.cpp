@@ -252,6 +252,12 @@ void AVLTree<T>::longest() {
 	printf("%d %d\n", cur->id, cur->value);
 }
 
+template <class T>
+void AVLTree<T>::inorder_trvs(AVLTreeNode<T> *node) {
+	if ( node->left != NULL ) inorder_trvs(node->left);	
+	printf("(%d, %d) ", node->id, node->value);
+	if ( node->right != NULL ) inorder_trvs(node->right);
+}
 
 template class AVLTreeNode<int>;
 template class AVLTree<int>;

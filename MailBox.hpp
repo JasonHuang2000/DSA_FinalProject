@@ -20,32 +20,30 @@ struct Mail { // store the infomation of a mail.
 	int* date;
 	int id;
 	int char_count;
-	unordered_set<string> *keywords;
+	unordered_set<string> *words;
 	// function
-	Mail(string _from, string _to, int* _date, int _id, int _char_count, unordered_set<string> *_keywords) : from(_from), to(_to), date(_date), id(_id), char_count(_char_count), keywords(_keywords) { }
+	Mail(string _from, string _to, int* _date, int _id, int _char_count, unordered_set<string> *_words) : from(_from), to(_to), date(_date), id(_id), char_count(_char_count), words(_words) { }
 	void mailInfo();
 };
 
 struct FromElem {
 	// variable
-	int id;
-	string to;
-	int* date;	
-	FromElem* next;
-	// function
-	FromElem(int id, string to, int* date) : id(id), to(to), date(date), next(NULL) {}
-	void insert(FromElem* fe);
-	void erase(int id);
+	struct IDElem {
+		string to;
+		int* date;	
+		unordered_set<string> *words;
+		IDElem(string to, int* date, unordered_set<string> *words) : to(to), date(date), words(words) {}
+	};
+	map<int, IDElem> IDMap;	
 };
 struct ToElem {
 	// variable
-	int id;
-	int *date;
-	ToElem* next;
-	// function
-	ToElem(int id, int* date) : id(id), date(date), next(NULL) {}
-	void insert(ToElem* te);
-	void erase(int id);
+	struct IDElem {
+		int* date;	
+		unordered_set<string> *words;
+		IDElem(int* date, unordered_set<string> *words) : date(date), words(words) {}
+	};
+	map<int, IDElem> IDMap;	
 };
 
 template <class T>
@@ -69,14 +67,13 @@ struct AVLTreeNode {
 template <class T>
 class AVLTree {
     int _size;
-    AVLTreeNode<T> *root;
     void balance(std::vector<AVLTreeNode<T>**> path);
-    void display(AVLTreeNode<T>* cur, int depth=0, int state=0);
     
 public:
     AVLTree();
     ~AVLTree();
     
+    AVLTreeNode<T> *root;
     void insert(T value, int id);
     void erase(T value, int id);
     
@@ -85,27 +82,30 @@ public:
     int size() const;
     int find(T value) const;
     const T& find_max() const;
+
+	void inorder_trvs(AVLTreeNode<T> *node);
 	void longest();
 };
 
 class MailBox { // storage for Mail.
 
 	private:
-		map<int, Mail> mailSet;
-		map<string, FromElem> fromSet;
-		map<string, ToElem> toSet;
-		AVLTree<int> charCountSet;
+		map<int, Mail> mailMap;
+		map<string, FromElem> fromMap;
+		map<string, ToElem> toMap;
+		AVLTree<int> charCountMap;
 
 	public:
 		void add(string& path);
 		void remove(int target_id);
 		void longest();
 		void query(string& from, string& to, int* start, int* end, vector<char>& oprtor, vector<string>& keywords); 
+		void AVLtrvs() { charCountMap.inorder_trvs(charCountMap.root); }
 		~MailBox() { 
-			mailSet.clear();
-			fromSet.clear();
-			toSet.clear();
-			charCountSet.clear();
+			mailMap.clear();
+			fromMap.clear();
+			toMap.clear();
+			charCountMap.clear();
 		}
 };
 

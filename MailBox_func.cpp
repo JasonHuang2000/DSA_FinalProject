@@ -21,7 +21,7 @@ bool dateComp(int* a, int* b) { // is date a happen after date b ?
 	return true;	
 }
 
-int processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, unordered_set<string>& keywords ) {
+int processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, unordered_set<string>& words ) {
 	ifstream fin(path);
 	if ( fin.is_open() ) {
 		string line;
@@ -56,7 +56,7 @@ int processInput( string& path, string& from, string& to, int* date, int& id, in
 				char_count++;
 			}
 			else if ( word.empty() == false ) {
-				keywords.insert(word);
+				words.insert(word);
 				word.clear();
 			}
 		}
@@ -72,7 +72,7 @@ int processInput( string& path, string& from, string& to, int* date, int& id, in
 					char_count++;
 				}
 				else if ( word.empty() == false ) {
-					keywords.insert(word);
+					words.insert(word);
 					word.clear();
 				}
 			}
@@ -139,50 +139,58 @@ void MailBox::add(string& path) {
 	string from, to;
 	int* date = (int*)malloc(sizeof(int)*4);
 	int id, char_count = 0;
-	unordered_set<string> keywords;
-	if ( processInput(path, from, to, date, id, char_count, keywords) == 0 ) { // if mail already added
+	unordered_set<string> words;
+	if ( processInput(path, from, to, date, id, char_count, words) == 0 ) { // if mail already added
 		printf("-\n");
 	} else {
 		ID_visited.insert(id);
 		printf("%lu\n", ID_visited.size());
 
 		// insert element.
-		Mail mail(from, to, date, id, char_count, &keywords);
-		mailSet.insert(pair<int, Mail>(id, mail));
+		Mail mail(from, to, date, id, char_count, &words);
+		mailMap.insert(pair<int, Mail>(id, mail));
 
-		FromElem fromElem(id, to, date);
-		auto fpos = fromSet.find(from);
-		if ( fpos == fromSet.end() ) fromSet.insert(pair<string, FromElem>(from, fromElem));
-		else fpos->second.insert(&fromElem);
+		FromElem::IDElem f_ide(to, date, &words);
+		auto fpos = fromMap.find(from);
+		if ( fpos == fromMap.end() ) {
+			FromElem fromElem;
+			auto fp = fromMap.insert(pair<string, FromElem>(from, fromElem));
+			fp.first->second.IDMap.insert(pair<int, FromElem::IDElem>(id, f_ide));
+		} else {
+			fpos->second.IDMap.insert(pair<int, FromElem::IDElem>(id, f_ide));
+		}
 
-		ToElem toElem(id, date);
-		auto tpos = toSet.find(to);
-		if ( tpos == toSet.end() ) toSet.insert(pair<string, ToElem>(to, toElem));
-		else tpos->second.insert(&toElem);
+		ToElem::IDElem t_ide(date, &words);
+		auto tpos = toMap.find(to);
+		if ( tpos == toMap.end() ) {
+			ToElem toElem;
+			auto tp = toMap.insert(pair<string, ToElem>(to, toElem));
+			tp.first->second.IDMap.insert(pair<int, ToElem::IDElem>(id, t_ide));
+		} else {
+			tpos->second.IDMap.insert(pair<int, ToElem::IDElem>(id, t_ide));
+		}
 
-		charCountSet.insert(char_count, id);
+		charCountMap.insert(char_count, id);
 
-		keywords.clear();
+		words.clear();
 	}
 }
 
 void MailBox::remove(int target_id) {
-	auto mail_pair = mailSet.find(target_id);
-	if ( mail_pair == mailSet.end() ) // if not found
+	auto mail_pair = mailMap.find(target_id);
+	if ( mail_pair == mailMap.end() ) // if not found
 		printf("-\n");
 	else {
-		// mailSet
-		mailSet.erase(mail_pair);
-		// fromSet
-		auto fpos = fromSet.find(mail_pair->second.from);
-		if ( fpos->second.next == NULL ) fromSet.erase(mail_pair->second.from);
-		else fpos->second.erase(target_id);
-		// toSet
-		auto tpos = toSet.find(mail_pair->second.to);
-		if ( tpos->second.next == NULL ) toSet.erase(mail_pair->second.to);
-		else tpos->second.erase(target_id);
-		// charCountSet
-		charCountSet.erase(mail_pair->second.char_count, mail_pair->second.id);
+		// mailMap
+		mailMap.erase(mail_pair);
+		// fromMap
+		auto fpos = fromMap.find(mail_pair->second.from);
+		fpos->second.IDMap.erase(target_id);
+		// toMap
+		auto tpos = toMap.find(mail_pair->second.to);
+		tpos->second.IDMap.erase(target_id);
+		// charCountMap
+		charCountMap.erase(mail_pair->second.char_count, mail_pair->second.id);
 		
 		ID_visited.erase(target_id);
 		printf("%lu\n", ID_visited.size());
@@ -190,7 +198,7 @@ void MailBox::remove(int target_id) {
 }
 
 void MailBox::longest() {
-	charCountSet.longest();
+	charCountMap.longest();
 }
 
 void MailBox::query(string& from, string& to, int* start, int* end, vector<char>& oprtor, vector<string>& keywords) {
@@ -198,16 +206,15 @@ void MailBox::query(string& from, string& to, int* start, int* end, vector<char>
 	vector<int> id_matched;
 
 	if ( from != "" ) { // if using '-f' flag
-		auto fp = fromSet.find(from);
-		if ( fp == fromSet.end() ) printf("-\n");
+		auto fp = fromMap.find(from);
+		if ( fp == fromMap.end() ) printf("-\n");
 		else {
-			for ( auto p = &(fp->second); p != NULL; p = p->next ) {
-				if ( to != "" && p->to != to ) continue; // "to" not matched	
-				auto mp = mailSet.find(p->id); 
-				Mail* mptr = &(mp->second);
-				if ( start[0] != -1 && dateComp(mptr->date, start) == false ) continue; // "start" not matched
-				if ( end[0] != -1 && dateComp(end, mptr->date) == false ) continue; // "end" not matched
-				
+			auto pass = &(fp->second.IDMap);
+			for ( auto p = pass->begin(); p != pass->end(); ++p ) {
+				if ( to != "" && p->second.to != to ) continue; // "to" not matched	
+				if ( start[0] != -1 && dateComp(p->second.date, start) == false ) continue; // "start" not matched
+				if ( end[0] != -1 && dateComp(end, p->second.date) == false ) continue; // "end" not matched
+			
 			}
 			if ( id_matched.empty() ) printf("-\n");
 			else {
@@ -215,14 +222,13 @@ void MailBox::query(string& from, string& to, int* start, int* end, vector<char>
 			}
 		}
 	} else if ( to != "" ) { // if using '-t' flag but no '-f' flag
-		auto tp = toSet.find(to);
-		if ( tp == toSet.end() ) printf("-\n");
+		auto tp = toMap.find(to);
+		if ( tp == toMap.end() ) printf("-\n");
 		else {
-			for ( auto p = &(tp->second); p != NULL; p = p->next ) {
-				auto mp = mailSet.find(p->id);
-				Mail* mptr = &(mp->second);
-				if ( start[0] != -1 && dateComp(mptr->date, start) == false ) continue; // "start" not matched
-				if ( end[0] != -1 && dateComp(end, mptr->date) == false ) continue; // "end" not matched
+			auto pass = &(tp->second.IDMap);
+			for ( auto p = pass->begin(); p != pass->end(); ++p ) {
+				if ( start[0] != -1 && dateComp(p->second.date, start) == false ) continue; // "start" not matched
+				if ( end[0] != -1 && dateComp(end, p->second.date) == false ) continue; // "end" not matched
 
 			}
 			if ( id_matched.empty() ) printf("-\n");
@@ -231,7 +237,7 @@ void MailBox::query(string& from, string& to, int* start, int* end, vector<char>
 			}
 		}
 	} else { // no '-f', '-t' flags are used
-		for ( auto p = mailSet.begin(); p != mailSet.end(); ++p ) {
+		for ( auto p = mailMap.begin(); p != mailMap.end(); ++p ) {
 			if ( start[0] != -1 && dateComp(p->second.date, start) == false ) continue; // "start" not matched
 			if ( end[0] != -1 && dateComp(end, p->second.date) == false ) continue; // "end" not matched
 		}
@@ -253,51 +259,6 @@ void Mail::mailInfo() {
 	cout << "Mail-id   " << id << endl;
 	printf("--------------------------------------------------\n");
 	printf("There are %d alphanumeric chracters in the mail.\n", char_count);
-	printf("There are %lu keywords in the mail.\n", keywords->size());
+	printf("There are %lu keywords in the mail.\n", words->size());
 	printf("--------------------------------------------------\n");
-}
-
-void FromElem::insert(FromElem* fe) {
-	FromElem* cur = this;
-	while ( cur != NULL ) {
-		cur = cur->next;
-	}
-	cur = fe;
-}
-void FromElem::erase(int id) {
-	FromElem* cur = this;
-	FromElem* prev = this;
-	while ( cur->id != id ) {
-		prev = cur;
-		cur = cur->next;
-	}
-	if ( cur == prev ) {
-		cur->id = cur->next->id;
-		cur->to = cur->next->to;
-		cur->date = cur->next->date;
-		cur->next = cur->next->next;
-	} else prev->next = cur->next;
-	delete cur;	
-}
-
-void ToElem::insert(ToElem* te) {
-	ToElem* cur = this;
-	while ( cur != NULL ) {
-		cur = cur->next;
-	}
-	cur = te;
-}
-void ToElem::erase(int id) {
-	ToElem* cur = this;
-	ToElem* prev = this;
-	while ( cur->id != id ) {
-		prev = cur;
-		cur = cur->next;
-	}
-	if ( cur == prev ) {
-		cur->id = cur->next->id;
-		cur->date = cur->next->date;
-		cur->next = cur->next->next;
-	} else prev->next = cur->next;
-	delete cur;	
 }
