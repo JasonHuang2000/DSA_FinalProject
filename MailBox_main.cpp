@@ -25,6 +25,7 @@ void execute(string operation) {
 		int end[4] = { -1, -1, -1, -1 };
 		getline(cin, input);
 		processQuery(input, from, to, start, end, oprtor, keywords);
+		for ( int i = 0; i < keywords.size(); i++ ) cout << keywords[i] << endl;
 
 		oprtor.clear();
 		keywords.clear();

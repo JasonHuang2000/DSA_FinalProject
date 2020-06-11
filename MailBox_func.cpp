@@ -94,11 +94,11 @@ void processQuery(string& input, string& from, string& to, int* start, int* end 
 	while ( getline(ss, token, ' ') ) {
 		if ( token[0] == '-' ) {
 			if ( token[1] == 'f' ) {
-				size_t pos = token.find_last_not_of('"');
-				from = token.substr(3, pos-2);
+				size_t pos = token.find_last_of('"');
+				from = token.substr(3, pos-3);
 			} else if ( token[1] == 't' ) {
-				size_t pos = token.find_last_not_of('"');
-				to = token.substr(3, pos-2);
+				size_t pos = token.find_last_of('"');
+				to = token.substr(3, pos-3);
 			} else {
 				size_t pos = token.find_first_of('~');
 				if ( pos > 2 ) {
@@ -115,7 +115,7 @@ void processQuery(string& input, string& from, string& to, int* start, int* end 
 					end[3] = stoi(token.substr(8,4));
 				}
 			}
-		} else if ( token.empty() == false ) {
+		} else if ( isalnum(token[0]) ) {
 			string word;
 			int idx;
 			for ( int i = 0; i < token.size(); i++ ) {
