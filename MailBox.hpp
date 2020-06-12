@@ -6,6 +6,7 @@
 #include <stack>
 #include <algorithm>
 #include <stack>
+#define MAXMAILNUM 10000
 
 using namespace std;
 

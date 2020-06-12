@@ -3,7 +3,6 @@
 MailBox mailbox; // the main storage for object Mail.
 vector<string> split;
 
-
 int main(void) {
 	string operation; 
 	while ( cin >> operation ) {
@@ -20,7 +19,7 @@ int main(void) {
 		} else if ( operation == "longest" ) {
 			/* cout << "longest" << endl; */
 			mailbox.longest();
-		} else {
+		} else if ( operation == "query" ) {
 			string input;
 			string from = "", to = "";
 			int start[4] = { -1, -1, -1, -1 };

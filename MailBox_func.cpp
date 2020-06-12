@@ -5,6 +5,7 @@
 
 map<string, int> month2int;
 unordered_set<int> ID_visited;
+bool met[MAXMAILNUM] = {false}; 
 char op[5] = { '(', ')', '!', '&', '|' };
 
 bool dateComp(int* a, int* b) { // is date a happen after date b ?
@@ -153,8 +154,9 @@ void MailBox::add(string& path) {
 		printf("-\n");
 	} else {
 		ID_visited.insert(id);
+		met[id] = true;
 		printf("%lu\n", ID_visited.size());
-		this->words[id] = _words;
+		if ( !met[id] ) this->words[id] = _words;
 
 		// insert element.
 		Mail mail(from, to, date, id, char_count);
@@ -181,6 +183,7 @@ void MailBox::add(string& path) {
 		}
 
 		charCountMap.insert(char_count, id);
+		_words.clear();
 	}
 }
 
