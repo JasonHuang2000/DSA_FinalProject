@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <stack>
 #include <algorithm>
+#include <stack>
 
 using namespace std;
 
@@ -20,9 +21,8 @@ struct Mail { // store the infomation of a mail.
 	int* date;
 	int id;
 	int char_count;
-	unordered_set<string> *words;
 	// function
-	Mail(string _from, string _to, int* _date, int _id, int _char_count, unordered_set<string> *_words) : from(_from), to(_to), date(_date), id(_id), char_count(_char_count), words(_words) { }
+	Mail(string _from, string _to, int* _date, int _id, int _char_count) : from(_from), to(_to), date(_date), id(_id), char_count(_char_count){ }
 	void mailInfo();
 };
 
@@ -31,8 +31,7 @@ struct FromElem {
 	struct IDElem {
 		string to;
 		int* date;	
-		unordered_set<string> *words;
-		IDElem(string to, int* date, unordered_set<string> *words) : to(to), date(date), words(words) {}
+		IDElem(string to, int* date) : to(to), date(date) {}
 	};
 	map<int, IDElem> IDMap;	
 };
@@ -40,8 +39,7 @@ struct ToElem {
 	// variable
 	struct IDElem {
 		int* date;	
-		unordered_set<string> *words;
-		IDElem(int* date, unordered_set<string> *words) : date(date), words(words) {}
+		IDElem(int* date) : date(date) {}
 	};
 	map<int, IDElem> IDMap;	
 };
@@ -94,23 +92,27 @@ class MailBox { // storage for Mail.
 		map<string, FromElem> fromMap;
 		map<string, ToElem> toMap;
 		AVLTree<int> charCountMap;
+		vector<unordered_set<string>> words;
 
 	public:
+		MailBox() { words.resize(10000); }
 		void add(string& path);
 		void remove(int target_id);
 		void longest();
-		void query(string& from, string& to, int* start, int* end, vector<char>& oprtor, vector<string>& keywords); 
+		void query(string& from, string& to, int* start, int* end, vector<string>& split); 
 		void AVLtrvs() { charCountMap.inorder_trvs(charCountMap.root); }
 		~MailBox() { 
 			mailMap.clear();
 			fromMap.clear();
 			toMap.clear();
 			charCountMap.clear();
+			words.clear();
 		}
 };
 
 // other function
 bool dateComp(int* a, int* b);
 int processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, unordered_set<string>& keywords);
-void processQuery(string& input, string& from, string& to, int* start, int* end , vector<char>& oprtor, vector<string>& keywords);
+void processQuery(string& input, string& from, string& to, int* start, int* end , vector<string>& split);
+bool exps(unordered_set<string>& words, vector<string>& split);
 
