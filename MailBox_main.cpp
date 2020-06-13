@@ -31,6 +31,8 @@ int main(void) {
 		}
 	}
 	/* mailbox.AVLtrvs(); */
-	mailbox.FROMtrvs();
+	/* mailbox.FROMtrvs(); */
+	/* mailbox.TOtrvs(); */
+	/* mailbox.WORDtrvs(); */
 	return 0;
 }
