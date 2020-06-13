@@ -6,7 +6,7 @@
 #include <stack>
 #include <algorithm>
 #include <stack>
-#define MAXMAILNUM 10001
+#define MAXMAILNUM 100001
 
 using namespace std;
 
@@ -98,10 +98,19 @@ class MailBox { // storage for Mail.
 
 	public:
 		MailBox() { words.resize(MAXMAILNUM); }
+		~MailBox() { 
+			mailMap.clear();
+			fromMap.clear();
+			toMap.clear();
+			charCountMap.clear();
+			words.clear();
+		}
 		void add(string& path);
 		void remove(int target_id);
 		void longest();
 		void query(string& from, string& to, int* start, int* end, vector<string>& split); 
+
+		// debug function
 		void mapSize();
 		void AVLtrvs() { charCountMap.inorder_trvs(charCountMap.root); }
 		void FROMtrvs() {
@@ -112,12 +121,23 @@ class MailBox { // storage for Mail.
 				cout << '}' << endl;
 			}
 		}
-		~MailBox() { 
-			mailMap.clear();
-			fromMap.clear();
-			toMap.clear();
-			charCountMap.clear();
-			words.clear();
+		void TOtrvs() {
+			for ( auto p = toMap.begin(); p != toMap.end(); ++p ) {
+				cout << p->first << " { ";
+				for ( auto i = p->second.IDMap.begin(); i != p->second.IDMap.end(); ++i )
+					cout << i->first << ' ';	
+				cout << '}' << endl;
+			}
+		}
+		void WORDtrvs() {
+			for ( int i = 0; i < MAXMAILNUM; i++ ) {
+				if ( words[i].empty() == false ) {
+					printf("(%d) ", i);
+					for ( auto p = words[i].begin(); p != words[i].end(); ++p ) 
+						cout << *p << ' ';
+					cout << endl;
+				}
+			}
 		}
 };
 
