@@ -25,7 +25,7 @@ bool dateComp(int* a, int* b) { // is date a happen after date b ?
 void processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, unordered_set<string>& words ) {
 	ifstream fin(path);
 	if ( fin.is_open() == true ) {
-		string line;
+		string line = "";
 
 		// from
 		getline(fin, line); 
@@ -35,7 +35,7 @@ void processInput( string& path, string& from, string& to, int* date, int& id, i
 		// date
 		getline(fin, line);
 		stringstream ss(line);
-		string token;
+		string token = "";
 		for ( int i = 0; getline(ss, token, ' '); i++ ) {
 			if ( i == 0 || i == 4 ) continue;
 			else if ( i == 1 ) date[2] = stoi(token);
@@ -54,7 +54,7 @@ void processInput( string& path, string& from, string& to, int* date, int& id, i
 		// subject
 		getline(fin, line);
 		string tmp = line.substr(9);
-		string word;
+		string word = "";
 		for ( int i = 0; i < tmp.size(); i++ ) {
 			if ( isalnum(tmp[i]) == true ) {
 				word += tolower(tmp[i]);
@@ -141,7 +141,7 @@ void processQuery(string& input, string& from, string& to, int* start, int* end 
 			}
 		} else { // expression
 
-			string word;
+			string word = "";
 			int idx;
 			for ( int i = 0; i < token.size(); i++ ) {
 				if ( (idx = getOperator(token[i])) == -1 ) { // part of a word
@@ -161,9 +161,10 @@ void processQuery(string& input, string& from, string& to, int* start, int* end 
 				}
 			}
 
-			if ( word.empty() == false ) // push the rest word if there is any
+			if ( word.empty() == false ) { // push the rest word if there is any
 				split.push_back(word);
 				word.clear();
+			}
 		}
 	}
 }
@@ -184,7 +185,7 @@ void MailBox::add(string& path) {
 		boxState.insert(path);
 		printf("%lu\n", boxState.size());
 		if ( met[id] == false ) {
-			this->words[id] = _words;
+			this->wordsMap[id] = _words;
 			met[id] = true;
 		}
 
@@ -196,8 +197,8 @@ void MailBox::add(string& path) {
 		auto fpos = fromMap.find(from);
 		if ( fpos == fromMap.end() ) {
 			FromElem fromElem;
-			auto fp = fromMap.insert(pair<string, FromElem>(from, fromElem));
-			fp.first->second.IDMap.insert(pair<int, FromElem::IDElem>(id, f_ide));
+			fromElem.IDMap.insert(pair<int, FromElem::IDElem>(id, f_ide));
+			fromMap.insert(pair<string, FromElem>(from, fromElem));
 		} else {
 			fpos->second.IDMap.insert(pair<int, FromElem::IDElem>(id, f_ide));
 		}
@@ -206,8 +207,8 @@ void MailBox::add(string& path) {
 		auto tpos = toMap.find(to);
 		if ( tpos == toMap.end() ) {
 			ToElem toElem;
-			auto tp = toMap.insert(pair<string, ToElem>(to, toElem));
-			tp.first->second.IDMap.insert(pair<int, ToElem::IDElem>(id, t_ide));
+			toElem.IDMap.insert(pair<int, ToElem::IDElem>(id, t_ide));
+			toMap.insert(pair<string, ToElem>(to, toElem));
 		} else {
 			tpos->second.IDMap.insert(pair<int, ToElem::IDElem>(id, t_ide));
 		}
@@ -247,6 +248,13 @@ void MailBox::longest() {
 void MailBox::query(string& from, string& to, int* start, int* end, vector<string>& split) {
 
 	vector<int> id_matched;
+	// query debug
+	/* cout << "---------------------" << endl; */
+	/* cout << "From: " << from << endl; */
+	/* cout << "To: " << to << endl; */
+	/* cout << "Start: " << start[0] << '/' << start[1] << '/' << start[2] << ' ' << start[3] << endl; */
+	/* cout << "End: " << end[0] << '/' << end[1] << '/' << end[2] << ' ' << end[3] << endl; */
+	/* cout << "---------------------" << endl; */
 
 	if ( from != "" ) { // if using '-f' flag
 
@@ -258,7 +266,7 @@ void MailBox::query(string& from, string& to, int* start, int* end, vector<strin
 				if ( to != "" && p->second.to != to ) continue; // "to" not matched	
 				if ( start[0] != -1 && dateComp(p->second.date, start) == false ) continue; // "start" not matched
 				if ( end[0] != -1 && dateComp(end, p->second.date) == false ) continue; // "end" not matched
-				if ( exps(words[p->first], split) ) id_matched.push_back(p->first);
+				if ( exps(wordsMap[p->first], split) ) id_matched.push_back(p->first);
 			}
 			if ( id_matched.empty() ) printf("-\n");
 			else {
@@ -277,7 +285,7 @@ void MailBox::query(string& from, string& to, int* start, int* end, vector<strin
 			for ( auto p = pass->begin(); p != pass->end(); ++p ) {
 				if ( start[0] != -1 && dateComp(p->second.date, start) == false ) continue; // "start" not matched
 				if ( end[0] != -1 && dateComp(end, p->second.date) == false ) continue; // "end" not matched
-				if ( exps(words[p->first], split) ) id_matched.push_back(p->first);
+				if ( exps(wordsMap[p->first], split) ) id_matched.push_back(p->first);
 			}
 			if ( id_matched.empty() ) printf("-\n");
 			else {
@@ -292,7 +300,7 @@ void MailBox::query(string& from, string& to, int* start, int* end, vector<strin
 		for ( auto p = mailMap.begin(); p != mailMap.end(); ++p ) {
 			if ( start[0] != -1 && dateComp(p->second.date, start) == false ) continue; // "start" not matched
 			if ( end[0] != -1 && dateComp(end, p->second.date) == false ) continue; // "end" not matched
-			if ( exps(words[p->first], split) ) id_matched.push_back(p->first);
+			if ( exps(wordsMap[p->first], split) ) id_matched.push_back(p->first);
 		}
 		if ( id_matched.empty() ) printf("-\n");
 		else {
