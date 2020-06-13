@@ -13,7 +13,7 @@ AVLTree.o: AVLTree.cpp
 MailBox_func.o: MailBox_func.cpp
 	$(CC) -c $^ -o $@
 
-MailBox_main.o: MailBox_main.cpp
+MailBox_main.o: MailBox_main_1.cpp
 	$(CC) -c $^ -o $@
 
 clean: 
