@@ -5,10 +5,9 @@
 
 map<string, int> month2int;
 unordered_set<string> boxState; // the "current" state of the mailbox(path-wise)
-bool met[MAXMAILNUM] = {false}; // is the mail seen before?
 char op[5] = { '(', ')', '!', '&', '|' };
 
-bool dateComp(int* a, int* b) { // is date a happen after date b ?
+bool dateComp(int* a, int* b) { // is date a happen after/simultaneously date b ?
 	if ( a[0] < b[0] ) return false;
 	else if ( a[0] == b[0] ) {
 		if ( a[1] < b[1] ) return false;
@@ -56,9 +55,8 @@ void processInput( string& path, string& from, string& to, int* date, int& id, i
 		string tmp = line.substr(9);
 		string word = "";
 		for ( int i = 0; i < tmp.size(); i++ ) {
-			if ( isalnum(tmp[i]) == true ) {
+			if ( isalnum(tmp[i]) ) {
 				word += tolower(tmp[i]);
-				char_count++;
 			}
 			else if ( word.empty() == false ) {
 				words.insert(word);
@@ -79,7 +77,7 @@ void processInput( string& path, string& from, string& to, int* date, int& id, i
 		getline(fin, line);
 		while ( getline(fin, line) ) {
 			for ( int i = 0; i < line.size(); i++ ) {
-				if ( isalnum(line[i]) == true ) {
+				if ( isalnum(line[i]) ) {
 					word += tolower(line[i]);
 					char_count++;
 				}
@@ -184,9 +182,8 @@ void MailBox::add(string& path) {
 
 		boxState.insert(path);
 		printf("%lu\n", boxState.size());
-		if ( met[id] == false ) {
+		if ( this->wordsMap[id].empty() == true ) { // add hash-table 'words' of [id] into wordsMap
 			this->wordsMap[id] = _words;
-			met[id] = true;
 		}
 
 		// insert element.
@@ -215,6 +212,7 @@ void MailBox::add(string& path) {
 
 		charCountMap.insert(char_count, id);
 		_words.clear();
+		/* mail.mailInfo(); */
 	}
 }
 
