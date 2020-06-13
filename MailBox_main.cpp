@@ -30,5 +30,7 @@ int main(void) {
 			split.clear();
 		}
 	}
+	/* mailbox.AVLtrvs(); */
+	mailbox.FROMtrvs();
 	return 0;
 }

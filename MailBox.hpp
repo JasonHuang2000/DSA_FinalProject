@@ -6,7 +6,7 @@
 #include <stack>
 #include <algorithm>
 #include <stack>
-#define MAXMAILNUM 10000
+#define MAXMAILNUM 10001
 
 using namespace std;
 
@@ -17,13 +17,14 @@ struct ToElem;
 
 struct Mail { // store the infomation of a mail.
 	// variable
+	string path;
 	string from;
 	string to;
 	int* date;
 	int id;
 	int char_count;
 	// function
-	Mail(string _from, string _to, int* _date, int _id, int _char_count) : from(_from), to(_to), date(_date), id(_id), char_count(_char_count){ }
+	Mail(string path, string _from, string _to, int* _date, int _id, int _char_count) : path(path), from(_from), to(_to), date(_date), id(_id), char_count(_char_count){ }
 	void mailInfo();
 };
 
@@ -96,12 +97,21 @@ class MailBox { // storage for Mail.
 		vector<unordered_set<string>> words;
 
 	public:
-		MailBox() { words.resize(10000); }
+		MailBox() { words.resize(MAXMAILNUM); }
 		void add(string& path);
 		void remove(int target_id);
 		void longest();
 		void query(string& from, string& to, int* start, int* end, vector<string>& split); 
+		void mapSize();
 		void AVLtrvs() { charCountMap.inorder_trvs(charCountMap.root); }
+		void FROMtrvs() {
+			for ( auto p = fromMap.begin(); p != fromMap.end(); ++p ) {
+				cout << p->first << " { ";
+				for ( auto i = p->second.IDMap.begin(); i != p->second.IDMap.end(); ++i )
+					cout << i->first << ' ';	
+				cout << '}' << endl;
+			}
+		}
 		~MailBox() { 
 			mailMap.clear();
 			fromMap.clear();
@@ -113,7 +123,7 @@ class MailBox { // storage for Mail.
 
 // other function
 bool dateComp(int* a, int* b);
-int processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, unordered_set<string>& keywords);
+void processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, unordered_set<string>& keywords);
 void processQuery(string& input, string& from, string& to, int* start, int* end , vector<string>& split);
 bool exps(unordered_set<string>& words, vector<string>& split);
 
