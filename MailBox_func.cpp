@@ -246,6 +246,7 @@ void MailBox::longest() {
 void MailBox::query(string& from, string& to, int* start, int* end, vector<string>& split) {
 
 	vector<int> id_matched;
+
 	// query debug
 	/* cout << "---------------------" << endl; */
 	/* cout << "From: " << from << endl; */
