@@ -33,6 +33,6 @@ int main(void) {
 	/* mailbox.AVLtrvs(); */
 	/* mailbox.FROMtrvs(); */
 	/* mailbox.TOtrvs(); */
-	/* mailbox.WORDtrvs(); */
+	mailbox.WORDtrvs();
 	return 0;
 }

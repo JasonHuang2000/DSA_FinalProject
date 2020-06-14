@@ -5,6 +5,7 @@
 
 map<string, int> month2int;
 unordered_set<string> boxState; // the "current" state of the mailbox(path-wise)
+bool met[MAXMAILNUM] = {false};
 char op[5] = { '(', ')', '!', '&', '|' };
 
 bool dateComp(int* a, int* b) { // is date a happen after/simultaneously date b ?
@@ -182,8 +183,9 @@ void MailBox::add(string& path) {
 
 		boxState.insert(path);
 		printf("%lu\n", boxState.size());
-		if ( this->wordsMap[id].empty() == true ) { // add hash-table 'words' of [id] into wordsMap
+		if ( met[id] == false ) { // add hash-table 'words' of [id] into wordsMap
 			this->wordsMap[id] = _words;
+			met[id] = true;
 		}
 
 		// insert element.
@@ -246,6 +248,7 @@ void MailBox::longest() {
 void MailBox::query(string& from, string& to, int* start, int* end, vector<string>& split) {
 
 	vector<int> id_matched;
+
 	// query debug
 	/* cout << "---------------------" << endl; */
 	/* cout << "From: " << from << endl; */

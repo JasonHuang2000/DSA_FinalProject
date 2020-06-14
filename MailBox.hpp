@@ -94,9 +94,10 @@ class MailBox { // storage for Mail.
 		map<string, FromElem> fromMap;
 		map<string, ToElem> toMap;
 		AVLTree<int> charCountMap;
-		map<int, unordered_set<string>> wordsMap;
+		vector<unordered_set<string>> wordsMap;
 
 	public:
+		MailBox() { wordsMap.resize(MAXMAILNUM); }
 		~MailBox() { 
 			mailMap.clear();
 			fromMap.clear();
@@ -129,10 +130,10 @@ class MailBox { // storage for Mail.
 			}
 		}
 		void WORDtrvs() {
-			for ( auto P = wordsMap.begin(); P != wordsMap.end(); ++P ) {
-				if ( P->second.empty() == false ) {
-					printf("(%d) ", P->first);
-					for ( auto p = P->second.begin(); p != P->second.end(); ++p ) 
+			for ( int i = 0; i < wordsMap.size(); ++i ) {
+				if ( wordsMap[i].empty() == false ) {
+					printf("(%d) ", i);
+					for ( auto p = wordsMap[i].begin(); p != wordsMap[i].end(); ++p ) 
 						cout << *p << ' ';
 					cout << endl;
 				}
