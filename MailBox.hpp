@@ -2,10 +2,11 @@
 #include <string>
 #include <vector>
 #include <map> // std::multiset (rb-tree)
+#include <set>
 #include <unordered_set>
+#include <unordered_map>
 #include <stack>
 #include <algorithm>
-#include <stack>
 #define MAXMAILNUM 100001
 
 using namespace std;
@@ -17,33 +18,23 @@ struct ToElem;
 
 struct Mail { // store the infomation of a mail.
 	// variable
-	string path;
 	string from;
 	string to;
 	int* date;
 	int id;
 	int char_count;
 	// function
-	Mail(string path, string _from, string _to, int* _date, int _id, int _char_count) : path(path), from(_from), to(_to), date(_date), id(_id), char_count(_char_count){ }
+	Mail(string _from, string _to, int* _date, int _id, int _char_count) : from(_from), to(_to), date(_date), id(_id), char_count(_char_count){ }
 	void mailInfo();
 };
 
 struct FromElem {
 	// variable
-	struct IDElem {
-		string to;
-		int* date;	
-		IDElem(string to, int* date) : to(to), date(date) {}
-	};
-	map<int, IDElem> IDMap;	
+	set<int> id;	
 };
 struct ToElem {
 	// variable
-	struct IDElem {
-		int* date;	
-		IDElem(int* date) : date(date) {}
-	};
-	map<int, IDElem> IDMap;	
+	set<int> id;
 };
 
 template <class T>
@@ -90,20 +81,28 @@ public:
 class MailBox { // storage for Mail.
 
 	private:
-		map<int, Mail> mailMap;
-		map<string, FromElem> fromMap;
-		map<string, ToElem> toMap;
+
+		bool met[MAXMAILNUM] = {false};
+		set<int> IDState;
+		unordered_map<string, FromElem> fromState;
+		unordered_map<string, ToElem> toState;
+		
+		vector<Mail> mailVec;
+		vector<unordered_set<string>> wordsVec;
+
 		AVLTree<int> charCountMap;
-		vector<unordered_set<string>> wordsMap;
 
 	public:
-		MailBox() { wordsMap.resize(MAXMAILNUM); }
+		MailBox() {
+			mailVec.resize(MAXMAILNUM, Mail("", "", nullptr, 0, 0));
+			wordsVec.resize(MAXMAILNUM); 
+		}
 		~MailBox() { 
-			mailMap.clear();
-			fromMap.clear();
-			toMap.clear();
+			IDState.clear();
+			fromState.clear();
+			toState.clear();
 			charCountMap.clear();
-			wordsMap.clear();
+			wordsVec.clear();
 		}
 		void add(string& path);
 		void remove(int target_id);
@@ -111,34 +110,34 @@ class MailBox { // storage for Mail.
 		void query(string& from, string& to, int* start, int* end, vector<string>& split); 
 
 		// debug function
-		void mapSize();
-		void AVLtrvs() { charCountMap.inorder_trvs(charCountMap.root); }
-		void FROMtrvs() {
-			for ( auto p = fromMap.begin(); p != fromMap.end(); ++p ) {
-				cout << p->first << " { ";
-				for ( auto i = p->second.IDMap.begin(); i != p->second.IDMap.end(); ++i )
-					cout << i->first << ' ';	
-				cout << '}' << endl;
-			}
-		}
-		void TOtrvs() {
-			for ( auto p = toMap.begin(); p != toMap.end(); ++p ) {
-				cout << p->first << " { ";
-				for ( auto i = p->second.IDMap.begin(); i != p->second.IDMap.end(); ++i )
-					cout << i->first << ' ';	
-				cout << '}' << endl;
-			}
-		}
-		void WORDtrvs() {
-			for ( int i = 0; i < wordsMap.size(); ++i ) {
-				if ( wordsMap[i].empty() == false ) {
-					printf("(%d) ", i);
-					for ( auto p = wordsMap[i].begin(); p != wordsMap[i].end(); ++p ) 
-						cout << *p << ' ';
-					cout << endl;
-				}
-			}
-		}
+		/* void mapSize(); */
+		/* void AVLtrvs() { charCountMap.inorder_trvs(charCountMap.root); } */
+		/* void FROMtrvs() { */
+		/* 	for ( auto p = fromMap.begin(); p != fromMap.end(); ++p ) { */
+		/* 		cout << p->first << " { "; */
+		/* 		for ( auto i = p->second.IDMap.begin(); i != p->second.IDMap.end(); ++i ) */
+		/* 			cout << i->first << ' '; */	
+		/* 		cout << '}' << endl; */
+		/* 	} */
+		/* } */
+		/* void TOtrvs() { */
+		/* 	for ( auto p = toMap.begin(); p != toMap.end(); ++p ) { */
+		/* 		cout << p->first << " { "; */
+		/* 		for ( auto i = p->second.IDMap.begin(); i != p->second.IDMap.end(); ++i ) */
+		/* 			cout << i->first << ' '; */	
+		/* 		cout << '}' << endl; */
+		/* 	} */
+		/* } */
+		/* void WORDtrvs() { */
+		/* 	for ( int i = 0; i < wordsMap.size(); ++i ) { */
+		/* 		if ( wordsMap[i].empty() == false ) { */
+		/* 			printf("(%d) ", i); */
+		/* 			for ( auto p = wordsMap[i].begin(); p != wordsMap[i].end(); ++p ) */ 
+		/* 				cout << *p << ' '; */
+		/* 			cout << endl; */
+		/* 		} */
+		/* 	} */
+		/* } */
 };
 
 // other function

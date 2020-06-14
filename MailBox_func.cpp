@@ -4,8 +4,6 @@
 #include <cctype>
 
 map<string, int> month2int;
-unordered_set<string> boxState; // the "current" state of the mailbox(path-wise)
-bool met[MAXMAILNUM] = {false};
 char op[5] = { '(', ')', '!', '&', '|' };
 
 bool dateComp(int* a, int* b) { // is date a happen after/simultaneously date b ?
@@ -171,74 +169,78 @@ void processQuery(string& input, string& from, string& to, int* start, int* end 
 // MailBox function
 void MailBox::add(string& path) {
 	if ( month2int.empty() ) { month2int["January"] = 1; month2int["February"] = 2; month2int["March"] = 3; month2int["April"] = 4; month2int["May"] = 5; month2int["June"] = 6; month2int["July"] = 7; month2int["August"] = 8; month2int["September"] = 9; month2int["October"] = 10; month2int["November"] = 11; month2int["December"] = 12; }
-	string from, to;
-	int* date = (int*)malloc(sizeof(int)*4);
+
 	int id = 0;
-	int char_count = 0;
-	unordered_set<string> _words;
-	if ( boxState.find(path) != boxState.end() ) { // if mail already added
-		printf("-\n");
-	} else {
-		processInput(path, from, to, date, id, char_count, _words);
+	for ( int i = 0; i < path.size(); i++ ) {
+		if ( isdigit(path[i]) ) {
+			id = stoi(path.substr(i));
+			break;
+		}
+	}
 
-		boxState.insert(path);
-		printf("%lu\n", boxState.size());
-		if ( met[id] == false ) { // add hash-table 'words' of [id] into wordsMap
-			this->wordsMap[id] = _words;
-			met[id] = true;
+	if ( IDState.find(id) == IDState.end() ) { // if mail is not in the box right now
+		if ( met[id] == false ) { // if mail hasn't been added
+
+			met[id] = true;	
+			string from, to;
+			int* date = (int*)malloc(sizeof(int)*4);
+			int char_count = 0;
+			unordered_set<string> _words;
+
+			processInput(path, from, to, date, id, char_count, _words);
+
+			Mail mail(from, to, date, id, char_count);
+			mailVec[id] = mail;
+			wordsVec[id] = _words;
+			_words.clear();
 		}
 
-		// insert element.
-		Mail mail(path, from, to, date, id, char_count);
-		mailMap.insert(pair<int, Mail>(id, mail));
-
-		FromElem::IDElem f_ide(to, date);
-		auto fpos = fromMap.find(from);
-		if ( fpos == fromMap.end() ) {
-			FromElem fromElem;
-			fromElem.IDMap.insert(pair<int, FromElem::IDElem>(id, f_ide));
-			fromMap.insert(pair<string, FromElem>(from, fromElem));
-		} else {
-			fpos->second.IDMap.insert(pair<int, FromElem::IDElem>(id, f_ide));
-		}
-
-		ToElem::IDElem t_ide(date);
-		auto tpos = toMap.find(to);
-		if ( tpos == toMap.end() ) {
-			ToElem toElem;
-			toElem.IDMap.insert(pair<int, ToElem::IDElem>(id, t_ide));
-			toMap.insert(pair<string, ToElem>(to, toElem));
-		} else {
-			tpos->second.IDMap.insert(pair<int, ToElem::IDElem>(id, t_ide));
-		}
+		int char_count = mailVec[id].char_count;
+		string from = mailVec[id].from;
+		string to = mailVec[id].to;
 
 		charCountMap.insert(char_count, id);
-		_words.clear();
-		/* mail.mailInfo(); */
-	}
+		
+		auto fpos = fromState.find(from);
+		if ( fpos == fromState.end() ) {
+			FromElem fromElem;
+			fromElem.id.insert(id);
+			fromState.insert(pair<string, FromElem>(from, fromElem));
+		} else fpos->second.id.insert(id);
+
+		auto tpos = toState.find(to);
+		if ( tpos == toState.end() ) {
+			ToElem toElem;
+			toElem.id.insert(id);
+			toState.insert(pair<string, ToElem>(to, toElem));
+		} else tpos->second.id.insert(id);
+
+		IDState.insert(id);
+		printf("%lu\n", IDState.size());
+
+	} else printf("-\n"); 
 }
 
 void MailBox::remove(int target_id) {
-	auto mail_pair = mailMap.find(target_id);
-	if ( mail_pair == mailMap.end() ) // if not found
-		printf("-\n");
-	else {
-		// BoxState
-		boxState.erase(mail_pair->second.path);
-		printf("%lu\n", boxState.size());
-		// fromMap
-		auto fpos = fromMap.find(mail_pair->second.from);
-		fpos->second.IDMap.erase(target_id);
-		if ( fpos->second.IDMap.empty() ) fromMap.erase(fpos);
-		// toMap
-		auto tpos = toMap.find(mail_pair->second.to);
-		tpos->second.IDMap.erase(target_id);
-		if ( tpos->second.IDMap.empty() ) toMap.erase(tpos);
-		// charCountMap
-		charCountMap.erase(mail_pair->second.char_count, mail_pair->second.id);
-		// mailMap
-		mailMap.erase(mail_pair);
-	}
+	auto IDptr = IDState.find(target_id);
+	if ( IDptr != IDState.end() ) { // the [target_id] mail is in the box right now
+		int char_count = mailVec[target_id].char_count;
+		string from = mailVec[target_id].from;
+		string to = mailVec[target_id].to;
+
+		charCountMap.erase(char_count, target_id);
+
+		auto fpos = fromState.find(from);
+		fpos->second.id.erase(target_id);
+		if ( fpos->second.id.empty() == true ) fromState.erase(fpos);
+
+		auto tpos = toState.find(to);
+		tpos->second.id.erase(target_id);
+		if ( tpos->second.id.empty() == true ) toState.erase(tpos);
+
+		IDState.erase(target_id);
+		printf("%lu\n", IDState.size());
+	} else printf("-\n");
 }
 
 void MailBox::longest() {
@@ -259,15 +261,15 @@ void MailBox::query(string& from, string& to, int* start, int* end, vector<strin
 
 	if ( from != "" ) { // if using '-f' flag
 
-		auto fp = fromMap.find(from);
-		if ( fp == fromMap.end() ) printf("-\n");
+		auto fp = fromState.find(from);
+		if ( fp == fromState.end() ) printf("-\n");
 		else {
-			auto pass = &(fp->second.IDMap);
+			auto pass = &(fp->second.id);
 			for ( auto p = pass->begin(); p != pass->end(); ++p ) {
-				if ( to != "" && p->second.to != to ) continue; // "to" not matched	
-				if ( start[0] != -1 && dateComp(p->second.date, start) == false ) continue; // "start" not matched
-				if ( end[0] != -1 && dateComp(end, p->second.date) == false ) continue; // "end" not matched
-				if ( exps(wordsMap[p->first], split) ) id_matched.push_back(p->first);
+				if ( to != "" && mailVec[*p].to != to ) continue; // "to" not matched	
+				if ( start[0] != -1 && dateComp(mailVec[*p].date, start) == false ) continue; // "start" not matched
+				if ( end[0] != -1 && dateComp(end, mailVec[*p].date) == false ) continue; // "end" not matched
+				if ( exps(wordsVec[*p], split) ) id_matched.push_back(*p);
 			}
 			if ( id_matched.empty() ) printf("-\n");
 			else {
@@ -279,14 +281,14 @@ void MailBox::query(string& from, string& to, int* start, int* end, vector<strin
 		}
 	} else if ( to != "" ) { // if using '-t' flag but no '-f' flag
 
-		auto tp = toMap.find(to);
-		if ( tp == toMap.end() ) printf("-\n");
+		auto tp = toState.find(to);
+		if ( tp == toState.end() ) printf("-\n");
 		else {
-			auto pass = &(tp->second.IDMap);
+			auto pass = &(tp->second.id);
 			for ( auto p = pass->begin(); p != pass->end(); ++p ) {
-				if ( start[0] != -1 && dateComp(p->second.date, start) == false ) continue; // "start" not matched
-				if ( end[0] != -1 && dateComp(end, p->second.date) == false ) continue; // "end" not matched
-				if ( exps(wordsMap[p->first], split) ) id_matched.push_back(p->first);
+				if ( start[0] != -1 && dateComp(mailVec[*p].date, start) == false ) continue; // "start" not matched
+				if ( end[0] != -1 && dateComp(end, mailVec[*p].date) == false ) continue; // "end" not matched
+				if ( exps(wordsVec[*p], split) ) id_matched.push_back(*p);
 			}
 			if ( id_matched.empty() ) printf("-\n");
 			else {
@@ -298,10 +300,10 @@ void MailBox::query(string& from, string& to, int* start, int* end, vector<strin
 		}
 	} else { // no '-f', '-t' flags are used
 
-		for ( auto p = mailMap.begin(); p != mailMap.end(); ++p ) {
-			if ( start[0] != -1 && dateComp(p->second.date, start) == false ) continue; // "start" not matched
-			if ( end[0] != -1 && dateComp(end, p->second.date) == false ) continue; // "end" not matched
-			if ( exps(wordsMap[p->first], split) ) id_matched.push_back(p->first);
+		for ( auto p = IDState.begin(); p != IDState.end(); ++p ) {
+			if ( start[0] != -1 && dateComp(mailVec[*p].date, start) == false ) continue; // "start" not matched
+			if ( end[0] != -1 && dateComp(end, mailVec[*p].date) == false ) continue; // "end" not matched
+			if ( exps(wordsVec[*p], split) ) id_matched.push_back(*p);
 		}
 		if ( id_matched.empty() ) printf("-\n");
 		else {
@@ -389,13 +391,13 @@ bool exps(unordered_set<string>& words, vector<string>& split) {
 	return result.top();
 }
 
-void MailBox::mapSize() {
-	printf("sizeof MailMap: %lu\n", mailMap.size());
-	int count = 0;
-	for ( auto p = fromMap.begin(); p != fromMap.end(); ++p ) count += p->second.IDMap.size(); 
-	printf("sizeof FromMap: %lu, %d\n", fromMap.size(), count); 
-	count = 0;
-	for ( auto p = toMap.begin(); p != toMap.end(); ++p ) count += p->second.IDMap.size(); 
-	printf("sizeof ToMap: %lu, %d\n", toMap.size(), count); 
-	printf("sizeof CharCountMap: %d\n", charCountMap.size());
-}
+/* void MailBox::mapSize() { */
+/* 	printf("sizeof MailMap: %lu\n", mailVec.size()); */
+/* 	int count = 0; */
+/* 	for ( auto p = fromState.begin(); p != fromState.end(); ++p ) count += p->second.id.size(); */ 
+/* 	printf("sizeof FromMap: %lu, %d\n", fromState.size(), count); */ 
+/* 	count = 0; */
+/* 	for ( auto p = toState.begin(); p != toState.end(); ++p ) count += p->second.id.size(); */ 
+/* 	printf("sizeof ToMap: %lu, %d\n", toState.size(), count); */ 
+/* 	printf("sizeof CharCountMap: %d\n", charCountMap.size()); */
+/* } */
