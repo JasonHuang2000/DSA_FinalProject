@@ -20,7 +20,7 @@ bool dateComp(int* a, int* b) { // is date a happen after/simultaneously date b 
 	return true;	
 }
 
-void processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, unordered_set<string>& words ) {
+void processInput( string& path, string& from, string& to, int64_t& date_ll, int& id, int& char_count, unordered_set<string>& words ) {
 	ifstream fin(path);
 	if ( fin.is_open() == true ) {
 		string line = "";
@@ -34,6 +34,7 @@ void processInput( string& path, string& from, string& to, int* date, int& id, i
 		getline(fin, line);
 		stringstream ss(line);
 		string token = "";
+		int date[4];
 		for ( int i = 0; getline(ss, token, ' '); i++ ) {
 			if ( i == 0 || i == 4 ) continue;
 			else if ( i == 1 ) date[2] = stoi(token);
@@ -44,6 +45,7 @@ void processInput( string& path, string& from, string& to, int* date, int& id, i
 				date[3] = 100 * stoi(token.substr(0, pos)) + stoi(token.substr(pos+1));
 			}
 		}
+		date_ll = (int64_t)date[0]*100000000 + date[1]*1000000 + date[2]*10000 + date[3];
 
 		// id
 		getline(fin, line);
@@ -101,7 +103,7 @@ int getOperator(char c) { // if operator, return the index of op; else, return -
 	return -1;
 }  
 
-void processQuery(string& input, string& from, string& to, int* start, int* end , vector<string>& split) {
+void processQuery(string& input, string& from, string& to, int64_t& start, int64_t& end, vector<string>& split) {
 	stringstream ss(input);		
 	string token;
 	getline(ss, token, ' ');
@@ -123,17 +125,10 @@ void processQuery(string& input, string& from, string& to, int* start, int* end 
 
 				size_t pos = token.find_first_of('~');
 				if ( pos > 2 ) {
-					start[0] = stoi(token.substr(2,4));
-					start[1] = stoi(token.substr(6,2));
-					start[2] = stoi(token.substr(8,2));
-					start[3] = stoi(token.substr(10,4));
+					start = stoll(token.substr(2,12));
 				}
 				if ( token.size() - 1 > pos ) {
-					token = token.substr(pos+1, 12);
-					end[0] = stoi(token.substr(0,4));
-					end[1] = stoi(token.substr(4,2));
-					end[2] = stoi(token.substr(6,2));
-					end[3] = stoi(token.substr(8,4));
+					end = stoll(token.substr(pos+1,12));
 				}
 			}
 		} else { // expression
@@ -179,12 +174,12 @@ void MailBox::add(string& path) {
 	}
 
 	if ( IDState.find(id) == IDState.end() ) { // if mail is not in the box right now
+		int char_count = 0;
+		string from, to;
 		if ( met[id] == false ) { // if mail hasn't been added
 
 			met[id] = true;	
-			string from, to;
-			int* date = (int*)malloc(sizeof(int)*4);
-			int char_count = 0;
+			int64_t date;
 			unordered_set<string> _words;
 
 			processInput(path, from, to, date, id, char_count, _words);
@@ -193,11 +188,12 @@ void MailBox::add(string& path) {
 			mailVec[id] = mail;
 			wordsVec[id] = _words;
 			_words.clear();
-		}
 
-		int char_count = mailVec[id].char_count;
-		string from = mailVec[id].from;
-		string to = mailVec[id].to;
+		} else {
+			char_count = mailVec[id].char_count;
+			from = mailVec[id].from;
+			to = mailVec[id].to;
+		}
 
 		charCountMap.insert(char_count, id);
 		
@@ -247,7 +243,7 @@ void MailBox::longest() {
 	charCountMap.longest();
 }
 
-void MailBox::query(string& from, string& to, int* start, int* end, vector<string>& split) {
+void MailBox::query(string& from, string& to, int64_t& start, int64_t& end, vector<string>& split) {
 
 	vector<int> id_matched;
 
@@ -255,8 +251,8 @@ void MailBox::query(string& from, string& to, int* start, int* end, vector<strin
 	/* cout << "---------------------" << endl; */
 	/* cout << "From: " << from << endl; */
 	/* cout << "To: " << to << endl; */
-	/* cout << "Start: " << start[0] << '/' << start[1] << '/' << start[2] << ' ' << start[3] << endl; */
-	/* cout << "End: " << end[0] << '/' << end[1] << '/' << end[2] << ' ' << end[3] << endl; */
+	/* cout << "Start: " << start << endl; */
+	/* cout << "End: " << end << endl; */
 	/* cout << "---------------------" << endl; */
 
 	if ( from != "" ) { // if using '-f' flag
@@ -267,12 +263,13 @@ void MailBox::query(string& from, string& to, int* start, int* end, vector<strin
 			auto pass = &(fp->second.id);
 			for ( auto p = pass->begin(); p != pass->end(); ++p ) {
 				if ( to != "" && mailVec[*p].to != to ) continue; // "to" not matched	
-				if ( start[0] != -1 && dateComp(mailVec[*p].date, start) == false ) continue; // "start" not matched
-				if ( end[0] != -1 && dateComp(end, mailVec[*p].date) == false ) continue; // "end" not matched
+				if ( start != 0 && mailVec[*p].date < start ) continue; // "start" not matched
+				if ( end != 0 && end <  mailVec[*p].date ) continue; // "end" not matched
 				if ( exps(wordsVec[*p], split) ) id_matched.push_back(*p);
 			}
 			if ( id_matched.empty() ) printf("-\n");
 			else {
+				sort(id_matched.begin(), id_matched.end());
 				int s = id_matched.size();
 				for ( int i = 0; i < s; i++ ) {
 					printf("%d%c", id_matched[i], i == s - 1 ? '\n' : ' ' );
@@ -286,12 +283,13 @@ void MailBox::query(string& from, string& to, int* start, int* end, vector<strin
 		else {
 			auto pass = &(tp->second.id);
 			for ( auto p = pass->begin(); p != pass->end(); ++p ) {
-				if ( start[0] != -1 && dateComp(mailVec[*p].date, start) == false ) continue; // "start" not matched
-				if ( end[0] != -1 && dateComp(end, mailVec[*p].date) == false ) continue; // "end" not matched
+				if ( start != 0 && mailVec[*p].date < start ) continue; // "start" not matched
+				if ( end != 0 && end <  mailVec[*p].date ) continue; // "end" not matched
 				if ( exps(wordsVec[*p], split) ) id_matched.push_back(*p);
 			}
 			if ( id_matched.empty() ) printf("-\n");
 			else {
+				sort(id_matched.begin(), id_matched.end());
 				int s = id_matched.size();
 				for ( int i = 0; i < s; i++ ) {
 					printf("%d%c", id_matched[i], i == s - 1 ? '\n' : ' ' );
@@ -301,12 +299,13 @@ void MailBox::query(string& from, string& to, int* start, int* end, vector<strin
 	} else { // no '-f', '-t' flags are used
 
 		for ( auto p = IDState.begin(); p != IDState.end(); ++p ) {
-			if ( start[0] != -1 && dateComp(mailVec[*p].date, start) == false ) continue; // "start" not matched
-			if ( end[0] != -1 && dateComp(end, mailVec[*p].date) == false ) continue; // "end" not matched
+			if ( start != 0 && mailVec[*p].date < start ) continue; // "start" not matched
+			if ( end != 0 && end < mailVec[*p].date ) continue; // "end" not matched
 			if ( exps(wordsVec[*p], split) ) id_matched.push_back(*p);
 		}
 		if ( id_matched.empty() ) printf("-\n");
 		else {
+			sort(id_matched.begin(), id_matched.end());
 			int s = id_matched.size();
 			for ( int i = 0; i < s; i++ ) {
 				printf("%d%c", id_matched[i], i == s - 1 ? '\n' : ' ' );
@@ -323,7 +322,7 @@ void Mail::mailInfo() {
 	printf("--------------------------------------------------\n");
 	cout << "From      " << from << endl;
 	cout << "To        " << to << endl;
-	cout << "Date      " << date[0] << '/' << date[1] << '/' << date[2] << ' ' << date[3] << endl;
+	cout << "Date      " << date << endl;
 	cout << "Mail-id   " << id << endl;
 	printf("--------------------------------------------------\n");
 	printf("There are %d alphanumeric chracters in the mail.\n", char_count);
@@ -391,13 +390,13 @@ bool exps(unordered_set<string>& words, vector<string>& split) {
 	return result.top();
 }
 
-/* void MailBox::mapSize() { */
-/* 	printf("sizeof MailMap: %lu\n", mailVec.size()); */
-/* 	int count = 0; */
-/* 	for ( auto p = fromState.begin(); p != fromState.end(); ++p ) count += p->second.id.size(); */ 
-/* 	printf("sizeof FromMap: %lu, %d\n", fromState.size(), count); */ 
-/* 	count = 0; */
-/* 	for ( auto p = toState.begin(); p != toState.end(); ++p ) count += p->second.id.size(); */ 
-/* 	printf("sizeof ToMap: %lu, %d\n", toState.size(), count); */ 
-/* 	printf("sizeof CharCountMap: %d\n", charCountMap.size()); */
-/* } */
+void MailBox::mapSize() {
+	printf("sizeof MailMap: %lu\n", mailVec.size());
+	int count = 0;
+	for ( auto p = fromState.begin(); p != fromState.end(); ++p ) count += p->second.id.size(); 
+	printf("sizeof FromMap: %lu, %d\n", fromState.size(), count); 
+	count = 0;
+	for ( auto p = toState.begin(); p != toState.end(); ++p ) count += p->second.id.size(); 
+	printf("sizeof ToMap: %lu, %d\n", toState.size(), count); 
+	printf("sizeof CharCountMap: %d\n", charCountMap.size());
+}

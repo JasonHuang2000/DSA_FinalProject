@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <stack>
 #include <algorithm>
-#define MAXMAILNUM 100001
+#define MAXMAILNUM 10002
 
 using namespace std;
 
@@ -20,21 +20,21 @@ struct Mail { // store the infomation of a mail.
 	// variable
 	string from;
 	string to;
-	int* date;
+	int64_t date;
 	int id;
 	int char_count;
 	// function
-	Mail(string _from, string _to, int* _date, int _id, int _char_count) : from(_from), to(_to), date(_date), id(_id), char_count(_char_count){ }
+	Mail(string _from, string _to, int64_t _date, int _id, int _char_count) : from(_from), to(_to), date(_date), id(_id), char_count(_char_count){ }
 	void mailInfo();
 };
 
 struct FromElem {
 	// variable
-	set<int> id;	
+	unordered_set<int> id;	
 };
 struct ToElem {
 	// variable
-	set<int> id;
+	unordered_set<int> id;
 };
 
 template <class T>
@@ -81,12 +81,12 @@ public:
 class MailBox { // storage for Mail.
 
 	private:
-
 		bool met[MAXMAILNUM] = {false};
-		set<int> IDState;
+		// the state within the box right now
+		unordered_set<int> IDState;
 		unordered_map<string, FromElem> fromState;
 		unordered_map<string, ToElem> toState;
-		
+		// vector storing info by id
 		vector<Mail> mailVec;
 		vector<unordered_set<string>> wordsVec;
 
@@ -94,7 +94,7 @@ class MailBox { // storage for Mail.
 
 	public:
 		MailBox() {
-			mailVec.resize(MAXMAILNUM, Mail("", "", nullptr, 0, 0));
+			mailVec.resize(MAXMAILNUM, Mail("", "", 0, 0, 0));
 			wordsVec.resize(MAXMAILNUM); 
 		}
 		~MailBox() { 
@@ -107,11 +107,11 @@ class MailBox { // storage for Mail.
 		void add(string& path);
 		void remove(int target_id);
 		void longest();
-		void query(string& from, string& to, int* start, int* end, vector<string>& split); 
+		void query(string& from, string& to, int64_t& start, int64_t& end, vector<string>& split); 
 
 		// debug function
-		/* void mapSize(); */
-		/* void AVLtrvs() { charCountMap.inorder_trvs(charCountMap.root); } */
+		void mapSize();
+		void AVLtrvs() { charCountMap.inorder_trvs(charCountMap.root); }
 		/* void FROMtrvs() { */
 		/* 	for ( auto p = fromMap.begin(); p != fromMap.end(); ++p ) { */
 		/* 		cout << p->first << " { "; */
@@ -142,7 +142,7 @@ class MailBox { // storage for Mail.
 
 // other function
 bool dateComp(int* a, int* b);
-void processInput( string& path, string& from, string& to, int* date, int& id, int& char_count, unordered_set<string>& keywords);
-void processQuery(string& input, string& from, string& to, int* start, int* end , vector<string>& split);
+void processInput( string& path, string& from, string& to, int64_t& date, int& id, int& char_count, unordered_set<string>& keywords);
+void processQuery(string& input, string& from, string& to, int64_t& start, int64_t& end, vector<string>& split);
 bool exps(unordered_set<string>& words, vector<string>& split);
 

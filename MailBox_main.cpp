@@ -22,8 +22,7 @@ int main(void) {
 		} else if ( operation == "query" ) {
 			string input;
 			string from = "", to = "";
-			int start[4] = { -1, -1, -1, -1 };
-			int end[4] = { -1, -1, -1, -1 };
+			int64_t start = 0, end = 0;
 			getline(cin, input);
 			processQuery(input, from, to, start, end, split);
 			mailbox.query(from, to, start, end, split);
