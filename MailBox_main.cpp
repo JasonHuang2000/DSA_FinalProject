@@ -4,6 +4,7 @@ MailBox mailbox; // the main storage for object Mail.
 vector<string> split;
 
 int main(void) {
+    ios_base::sync_with_stdio(false);
 	string operation; 
 	while ( cin >> operation ) {
 		if ( operation == "add" ) {
