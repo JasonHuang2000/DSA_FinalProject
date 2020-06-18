@@ -18,13 +18,13 @@ struct ToElem;
 
 struct Mail { // store the infomation of a mail.
 	// variable
-	string from;
-	string to;
 	int64_t date;
 	int id;
 	int char_count;
+	string from;
+	string to;
 	// function
-	Mail(string _from, string _to, int64_t _date, int _id, int _char_count) : from(_from), to(_to), date(_date), id(_id), char_count(_char_count){ }
+	Mail(string _from, string _to, int64_t _date, int _id, int _char_count) : date(_date), id(_id), char_count(_char_count), from(_from), to(_to) { }
 	void mailInfo();
 };
 
@@ -38,7 +38,8 @@ struct ToElem {
 };
 
 template <class T>
-struct AVLTreeNode {
+class AVLTreeNode {
+	public:
     AVLTreeNode *left;
     AVLTreeNode *right;
     
