@@ -269,7 +269,7 @@ void MailBox::query(string& from, string& to, int64_t& start, int64_t& end, vect
 			}
 			if ( id_matched.empty() ) printf("-\n");
 			else {
-				sort(id_matched.begin(), id_matched.end());
+				/* sort(id_matched.begin(), id_matched.end()); */
 				int s = id_matched.size();
 				for ( int i = 0; i < s; i++ ) {
 					printf("%d%c", id_matched[i], i == s - 1 ? '\n' : ' ' );
@@ -289,7 +289,7 @@ void MailBox::query(string& from, string& to, int64_t& start, int64_t& end, vect
 			}
 			if ( id_matched.empty() ) printf("-\n");
 			else {
-				sort(id_matched.begin(), id_matched.end());
+				/* sort(id_matched.begin(), id_matched.end()); */
 				int s = id_matched.size();
 				for ( int i = 0; i < s; i++ ) {
 					printf("%d%c", id_matched[i], i == s - 1 ? '\n' : ' ' );
@@ -305,7 +305,7 @@ void MailBox::query(string& from, string& to, int64_t& start, int64_t& end, vect
 		}
 		if ( id_matched.empty() ) printf("-\n");
 		else {
-			sort(id_matched.begin(), id_matched.end());
+			/* sort(id_matched.begin(), id_matched.end()); */
 			int s = id_matched.size();
 			for ( int i = 0; i < s; i++ ) {
 				printf("%d%c", id_matched[i], i == s - 1 ? '\n' : ' ' );

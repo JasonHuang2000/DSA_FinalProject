@@ -30,11 +30,11 @@ struct Mail { // store the infomation of a mail.
 
 struct FromElem {
 	// variable
-	unordered_set<int> id;	
+	set<int> id;	
 };
 struct ToElem {
 	// variable
-	unordered_set<int> id;
+	set<int> id;
 };
 
 template <class T>
@@ -83,7 +83,7 @@ class MailBox { // storage for Mail.
 	private:
 		bool met[MAXMAILNUM] = {false};
 		// the state within the box right now
-		unordered_set<int> IDState;
+		set<int> IDState;
 		unordered_map<string, FromElem> fromState;
 		unordered_map<string, ToElem> toState;
 		// vector storing info by id
