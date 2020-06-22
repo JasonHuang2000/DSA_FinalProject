@@ -2,105 +2,104 @@
 #include <fstream>
 #include <sstream>
 #include <cctype>
+#include <ctime>
 
-map<string, int> month2int;
-char op[5] = { '(', ')', '!', '&', '|' };
+const map<string, int> month2int = {
+    {"January", 1},
+    {"February", 2},
+    {"March", 3},
+    {"April", 4},
+    {"May", 5},
+    {"June", 6},
+    {"July", 7},
+    {"August", 8},
+    {"September", 9},
+    {"October", 10},
+    {"November", 11},
+    {"December", 12}
+};
 
-bool dateComp(int* a, int* b) { // is date a happen after/simultaneously date b ?
-	if ( a[0] < b[0] ) return false;
-	else if ( a[0] == b[0] ) {
-		if ( a[1] < b[1] ) return false;
-		else if ( a[1] == b[1] ) {
-			if ( a[2] < b[2] ) return false;
-			else if ( a[2] == b[2] ) {
-				if ( a[3] < b[3] ) return false;
-			}
-		}
-	}
-	return true;	
-}
+const map<char, int> op = {
+    {'(', 0},
+    {')', 1},
+    {'!', 2},
+    {'&', 3},
+    {'|', 4}
+};
 
 void processInput( string& path, string& from, string& to, int64_t& date_ll, int& id, int& char_count, unordered_set<string>& words ) {
 	ifstream fin(path);
-	if ( fin.is_open() == true ) {
-		string line = "";
+    string line = "";
 
-		// from
-		getline(fin, line); 
-		from = line.substr(6);
-		for ( int i = 0; i < from.size(); i++ ) from[i] = tolower(from[i]);
+    // from
+    getline(fin, line); 
+    from = line.substr(6);
+    for ( size_t i = 0; i < from.size(); i++ ) from[i] = tolower(from[i]);
 
-		// date
-		getline(fin, line);
-		stringstream ss(line);
-		string token = "";
-		int date[4];
-		for ( int i = 0; getline(ss, token, ' '); i++ ) {
-			if ( i == 0 || i == 4 ) continue;
-			else if ( i == 1 ) date[2] = stoi(token);
-			else if ( i == 2 ) date[1] = month2int[token];
-			else if ( i == 3 ) date[0] = stoi(token);
-			else if ( i == 5 ) {
-				size_t pos = token.find_first_of(":");
-				date[3] = 100 * stoi(token.substr(0, pos)) + stoi(token.substr(pos+1));
-			}
-		}
-		date_ll = (int64_t)date[0]*100000000 + date[1]*1000000 + date[2]*10000 + date[3];
+    // date
+    string year, month, day, hour_minute, dummy1, dummy2;
+    fin >> dummy1 >> day >> month >> year >> dummy2 >> hour_minute;
 
-		// id
-		getline(fin, line);
-		id = stoi(line.substr(12));
+    date_ll = (int64_t)stoi(year)*100000000 + month2int.find(month)->second*1000000 
+            + stoi(day)*10000 + stoi(hour_minute.substr(0,2))*100 + stoi(hour_minute.substr(3,5));
 
-		// subject
-		getline(fin, line);
-		string tmp = line.substr(9);
-		string word = "";
-		for ( int i = 0; i < tmp.size(); i++ ) {
-			if ( isalnum(tmp[i]) ) {
-				word += tolower(tmp[i]);
-			}
-			else if ( word.empty() == false ) {
-				words.insert(word);
-				word.clear();
-			}
-		}
-		if ( word.empty() == false ) {
-			words.insert(word);
-			word.clear();
-		}
+    // id
+    getline(fin, line);
+    getline(fin, line);
+    id = stoi(line.substr(12));
 
-		// to
-		getline(fin, line);
-		to = line.substr(4);
-		for ( int i = 0; i < to.size(); i++ ) to[i] = tolower(to[i]);
+    // subject
+    getline(fin, line);
+    string tmp = line.substr(9);
+    string word = "";
+    for ( int i = 0; i < tmp.size(); i++ ) {
+        if ( isalnum(tmp[i]) ) {
+            word += tolower(tmp[i]);
+        }
+        else if ( word.empty() == false ) {
+            words.insert(word);
+            word.clear();
+        }
+    }
+    if ( word.empty() == false ) {
+        words.insert(word);
+        word.clear();
+    }
 
-		// content
-		getline(fin, line);
-		while ( getline(fin, line) ) {
-			for ( int i = 0; i < line.size(); i++ ) {
-				if ( isalnum(line[i]) ) {
-					word += tolower(line[i]);
-					char_count++;
-				}
-				else if ( word.empty() == false ) {
-					words.insert(word);
-					word.clear();
-				}
-			}
-			if ( word.empty() == false ) {
-				words.insert(word);
-				word.clear();
-			}
-		}
-	}
+    // to
+    getline(fin, line);
+    to = line.substr(4);
+    for ( int i = 0; i < to.size(); i++ ) to[i] = tolower(to[i]);
+
+    // content
+    getline(fin, line);
+    while ( getline(fin, line) ) {
+        for ( int i = 0; i < line.size(); i++ ) {
+            if ( isalnum(line[i]) ) {
+                word += tolower(line[i]);
+                char_count++;
+            }
+            else if ( word.empty() == false ) {
+                words.insert(word);
+                word.clear();
+            }
+        }
+        if ( word.empty() == false ) {
+            words.insert(word);
+            word.clear();
+        }
+    }
 	fin.close();
 }
 
 int getOperator(char c) { // if operator, return the index of op; else, return -1
-	for ( int i = 0; i < 5; i++ ) {
-		if ( c == op[i] ) return i; 
-	}
-	return -1;
+    auto iter = op.find(c);
+    if (iter != op.end()) {
+        return iter->second;
+    }
+    else {
+        return -1;
+    }
 }  
 
 void processQuery(string& input, string& from, string& to, int64_t& start, int64_t& end, vector<string>& split) {
@@ -163,15 +162,8 @@ void processQuery(string& input, string& from, string& to, int64_t& start, int64
 
 // MailBox function
 void MailBox::add(string& path) {
-	if ( month2int.empty() ) { month2int["January"] = 1; month2int["February"] = 2; month2int["March"] = 3; month2int["April"] = 4; month2int["May"] = 5; month2int["June"] = 6; month2int["July"] = 7; month2int["August"] = 8; month2int["September"] = 9; month2int["October"] = 10; month2int["November"] = 11; month2int["December"] = 12; }
 
-	int id = 0;
-	for ( int i = 0; i < path.size(); i++ ) {
-		if ( isdigit(path[i]) ) {
-			id = stoi(path.substr(i));
-			break;
-		}
-	}
+	int id = stoi(regex_replace(path, regex("[^0-9]*"), ""));
 
 	if ( IDState.find(id) == IDState.end() ) { // if mail is not in the box right now
 		int char_count = 0;
@@ -212,9 +204,12 @@ void MailBox::add(string& path) {
 		} else tpos->second.id.insert(id);
 
 		IDState.insert(id);
-		printf("%lu\n", IDState.size());
+		cout << IDState.size() << endl;
 
-	} else printf("-\n"); 
+	}
+    else {
+        cout << '-' << endl;
+    } 
 }
 
 void MailBox::remove(int target_id) {
@@ -235,8 +230,11 @@ void MailBox::remove(int target_id) {
 		if ( tpos->second.id.empty() == true ) toState.erase(tpos);
 
 		IDState.erase(target_id);
-		printf("%lu\n", IDState.size());
-	} else printf("-\n");
+		cout << IDState.size() << endl;
+	}
+    else {
+        cout << '-' << endl;
+    }
 }
 
 void MailBox::longest() {
@@ -258,41 +256,57 @@ void MailBox::query(string& from, string& to, int64_t& start, int64_t& end, vect
 	if ( from != "" ) { // if using '-f' flag
 
 		auto fp = fromState.find(from);
-		if ( fp == fromState.end() ) printf("-\n");
-		else {
-			auto pass = &(fp->second.id);
-			for ( auto p = pass->begin(); p != pass->end(); ++p ) {
+		
+        if ( fp == fromState.end() ) {
+            cout << '-' << endl;
+        }
+		
+        else {
+			
+            auto pass = &(fp->second.id);
+			
+            for ( auto p = pass->begin(); p != pass->end(); ++p ) {
 				if ( to != "" && mailVec[*p].to != to ) continue; // "to" not matched	
 				if ( start != 0 && mailVec[*p].date < start ) continue; // "start" not matched
 				if ( end != 0 && end <  mailVec[*p].date ) continue; // "end" not matched
 				if ( exps(wordsVec[*p], split) ) id_matched.push_back(*p);
 			}
-			if ( id_matched.empty() ) printf("-\n");
+			
+            if ( id_matched.empty() ) {
+                cout << '-' << endl;
+            }
+
 			else {
 				sort(id_matched.begin(), id_matched.end());
 				int s = id_matched.size();
 				for ( int i = 0; i < s; i++ ) {
-					printf("%d%c", id_matched[i], i == s - 1 ? '\n' : ' ' );
+                    cout << id_matched[i] << (i == (s-1) ? '\n': ' ');
 				}
 			}
 		}
 	} else if ( to != "" ) { // if using '-t' flag but no '-f' flag
 
 		auto tp = toState.find(to);
-		if ( tp == toState.end() ) printf("-\n");
-		else {
+		
+        if ( tp == toState.end() ) {
+            cout << '-' << endl;
+        }
+		
+        else {
 			auto pass = &(tp->second.id);
 			for ( auto p = pass->begin(); p != pass->end(); ++p ) {
 				if ( start != 0 && mailVec[*p].date < start ) continue; // "start" not matched
 				if ( end != 0 && end <  mailVec[*p].date ) continue; // "end" not matched
 				if ( exps(wordsVec[*p], split) ) id_matched.push_back(*p);
 			}
-			if ( id_matched.empty() ) printf("-\n");
+			if ( id_matched.empty() ) {
+                cout << '-' << endl;
+            }
 			else {
 				sort(id_matched.begin(), id_matched.end());
 				int s = id_matched.size();
 				for ( int i = 0; i < s; i++ ) {
-					printf("%d%c", id_matched[i], i == s - 1 ? '\n' : ' ' );
+                    cout << id_matched[i] << (i == (s-1) ? '\n': ' ');
 				}
 			}
 		}
@@ -303,12 +317,14 @@ void MailBox::query(string& from, string& to, int64_t& start, int64_t& end, vect
 			if ( end != 0 && end < mailVec[*p].date ) continue; // "end" not matched
 			if ( exps(wordsVec[*p], split) ) id_matched.push_back(*p);
 		}
-		if ( id_matched.empty() ) printf("-\n");
+		if ( id_matched.empty() ) {
+            cout << '-' << endl;
+        }
 		else {
 			sort(id_matched.begin(), id_matched.end());
 			int s = id_matched.size();
 			for ( int i = 0; i < s; i++ ) {
-				printf("%d%c", id_matched[i], i == s - 1 ? '\n' : ' ' );
+                cout << id_matched[i] << (i == (s-1) ? '\n': ' ');
 			}
 		}
 	}

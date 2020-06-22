@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <stack>
 #include <algorithm>
+#include <regex>
 #define MAXMAILNUM 10002
 
 using namespace std;
@@ -141,7 +142,6 @@ class MailBox { // storage for Mail.
 };
 
 // other function
-bool dateComp(int* a, int* b);
 void processInput( string& path, string& from, string& to, int64_t& date, int& id, int& char_count, unordered_set<string>& keywords);
 void processQuery(string& input, string& from, string& to, int64_t& start, int64_t& end, vector<string>& split);
 bool exps(unordered_set<string>& words, vector<string>& split);
