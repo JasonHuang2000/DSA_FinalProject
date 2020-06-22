@@ -320,10 +320,10 @@ void Mail::mailInfo() {
 	printf("--------------------------------------------------\n");
 	printf("                  Mail Info                       \n");
 	printf("--------------------------------------------------\n");
+	cout << "Mail ID   " << id << endl;
 	cout << "From      " << from << endl;
 	cout << "To        " << to << endl;
-	cout << "Date      " << date << endl;
-	cout << "Mail-id   " << id << endl;
+	cout << "Time      " << date/100000000 << '/' << (date/1000000)%100 << '/' << (date/10000)%100 << ' ' << (date/100)%100 << ':' << (date%100) << endl;
 	printf("--------------------------------------------------\n");
 	printf("There are %d alphanumeric chracters in the mail.\n", char_count);
 	printf("--------------------------------------------------\n");
