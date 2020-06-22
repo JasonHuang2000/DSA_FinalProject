@@ -1,5 +1,5 @@
 CC:=g++ -std=c++17
-CFLAGS=-O2 -Wall -funroll-loops
+CFLAGS=-O3 -Wall -funroll-loops
 obj:= AVLTree.o MailBox_func.o MailBox_main.o 
 exe:=run
 
