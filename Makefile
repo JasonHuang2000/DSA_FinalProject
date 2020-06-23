@@ -5,17 +5,8 @@ exe:=run
 
 .PHONY: all clean
 
-all: $(obj)
-	$(CC) $(obj) -o $(exe) $(CFLAGS)
-
-AVLTree.o: AVLTree.cpp
-	$(CC) -c $^ -o $@ $(CFLAGS)
-
-MailBox_func.o: MailBox_func.cpp
-	$(CC) -c $^ -o $@ $(CFLAGS)
-
-MailBox_main.o: MailBox_main.cpp
-	$(CC) -c $^ -o $@ $(CFLAGS)
+all: 
+	$(CC) MailBox_func.cpp MailBox_main.cpp AVLTree.cpp -o $(exe) $(CFLAGS)
 
 clean: 
 	rm -rf $(obj) $(exe)
