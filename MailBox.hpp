@@ -3,6 +3,7 @@
 #include <vector>
 #include <map> // std::multiset (rb-tree)
 #include <set>
+#include <bitset>
 #include <unordered_set>
 #include <unordered_map>
 #include <stack>
@@ -85,6 +86,8 @@ class MailBox { // storage for Mail.
 		bool met[MAXMAILNUM] = {false};
 		// the state within the box right now
 		set<int> IDState;
+		bitset<MAXMAILNUM> idstate;
+
 		unordered_map<string, FromElem> fromState;
 		unordered_map<string, ToElem> toState;
 		// vector storing info by id
@@ -111,6 +114,7 @@ class MailBox { // storage for Mail.
 		void query(string& from, string& to, int64_t& start, int64_t& end, vector<string>& split); 
 
 		// debug function
+		int NumOfMails() { return IDState.size(); }
 		void mapSize();
 		void AVLtrvs() { charCountMap.inorder_trvs(charCountMap.root); }
 		/* void FROMtrvs() { */
@@ -146,4 +150,7 @@ bool dateComp(int* a, int* b);
 void processInput( string& path, string& from, string& to, int64_t& date, int& id, int& char_count, unordered_set<string>& keywords);
 void processQuery(string& input, string& from, string& to, int64_t& start, int64_t& end, vector<string>& split);
 bool exps(unordered_set<string>& words, vector<string>& split);
-
+void setcompute(vector<int>& results, stack<string>& wordzz, string oprtor);
+void setexps(vector<int>& results, vector<string>& split);
+void bsetcompute(stack<string>& wordzz, string& oprtor);
+void bsetexps(bitset<MAXMAILNUM>& results, vector<string>& split);
