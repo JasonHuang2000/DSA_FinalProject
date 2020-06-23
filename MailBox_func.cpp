@@ -3,26 +3,12 @@
 #include <sstream>
 #include <cctype>
 
-map<string, int> month2int;
+unordered_map<string, int> month2int;
 char op[5] = { '(', ')', '!', '&', '|' };
 unordered_map<string, vector<int>> kwordmap;
 unordered_map<string, bitset<MAXMAILNUM>> bwords;
 
-bool dateComp(int* a, int* b) { // is date a happen after/simultaneously date b ?
-	if ( a[0] < b[0] ) return false;
-	else if ( a[0] == b[0] ) {
-		if ( a[1] < b[1] ) return false;
-		else if ( a[1] == b[1] ) {
-			if ( a[2] < b[2] ) return false;
-			else if ( a[2] == b[2] ) {
-				if ( a[3] < b[3] ) return false;
-			}
-		}
-	}
-	return true;	
-}
-
-void processInput(string& path, string& from, string& to, int64_t& date_ll, int& id, int& char_count, unordered_set<string>& words) {
+void processInput(string& path, string& from, string& to, int64_t& date_ll, int& id, int& char_count) {
 	ifstream fin(path);
 	if ( fin.is_open() == true ) {
 		string line = "";
@@ -216,44 +202,23 @@ void MailBox::add(string& path) {
 	// if ( IDState.find(id) == IDState.end() ) { // if mail is not in the box right now
 	if ( idstate[id] == false ) { // if mail is not in the box right now
 		int char_count = 0;
-		string from, to;
 		if ( met[id] == false ) { // if mail hasn't been added
 
+			string from, to;
 			met[id] = true;	
 			int64_t date;
-			unordered_set<string> _words;
 
-			processInput(path, from, to, date, id, char_count, _words);
+			processInput(path, from, to, date, id, char_count);
 
 			Mail mail(from, to, date, id, char_count);
 			mailVec[id] = mail;
-			wordsVec[id] = _words;
-			_words.clear();
 
 		} else {
 			char_count = mailVec[id].char_count;
-			from = mailVec[id].from;
-			to = mailVec[id].to;
 		}
 
 		charCountMap.insert(char_count, id);
 		
-		auto fpos = fromState.find(from);
-		if ( fpos == fromState.end() ) {
-			FromElem fromElem;
-			fromElem.id.insert(id);
-			fromState.insert(pair<string, FromElem>(from, fromElem));
-		} else fpos->second.id.insert(id);
-
-		auto tpos = toState.find(to);
-		if ( tpos == toState.end() ) {
-			ToElem toElem;
-			toElem.id.insert(id);
-			toState.insert(pair<string, ToElem>(to, toElem));
-		} else tpos->second.id.insert(id);
-
-		// IDState.insert(id);
-		// printf("%lu\n", IDState.size());
 		idstate[id] = true;
 		cout << idstate.count() << '\n';
 
@@ -261,25 +226,10 @@ void MailBox::add(string& path) {
 }
 
 void MailBox::remove(int target_id) {
-	// auto IDptr = IDState.find(target_id);
-	// if ( IDptr != IDState.end() ) { // the [target_id] mail is in the box right now
+
 	if ( idstate[target_id] == true ) {
 		int char_count = mailVec[target_id].char_count;
-		string from = mailVec[target_id].from;
-		string to = mailVec[target_id].to;
-
 		charCountMap.erase(char_count, target_id);
-
-		auto fpos = fromState.find(from);
-		fpos->second.id.erase(target_id);
-		if ( fpos->second.id.empty() == true ) fromState.erase(fpos);
-
-		auto tpos = toState.find(to);
-		tpos->second.id.erase(target_id);
-		if ( tpos->second.id.empty() == true ) toState.erase(tpos);
-
-		// IDState.erase(target_id);
-		// printf("%lu\n", IDState.size());
 		idstate[target_id] = false;
 		cout << idstate.count() << '\n';
 	} else cout << "-\n";
@@ -291,14 +241,6 @@ void MailBox::longest() {
 
 void MailBox::query(string& from, string& to, int64_t& start, int64_t& end, vector<string>& split) {
 
-	// query debug
-	/* cout << "---------------------" << endl; */
-	/* cout << "From: " << from << endl; */
-	/* cout << "To: " << to << endl; */
-	/* cout << "Start: " << start << endl; */
-	/* cout << "End: " << end << endl; */
-	/* cout << "---------------------" << endl; */
-
 	bitset<MAXMAILNUM> results;
 	bsetexps(results, split);
 	results &= idstate;
@@ -307,70 +249,27 @@ void MailBox::query(string& from, string& to, int64_t& start, int64_t& end, vect
 		cout << "-\n";
 		return;
 	} else {
-		if ( from != "" ) { // if using '-f' flag
-			int c = results.count();
-			bool first = true;
-			for ( int i = 1; i < MAXMAILNUM && c != 0; i++ ) {
-				if ( results[i] ){
-					if ( mailVec[i].from != from ) continue;
-					if ( to != "" && mailVec[i].to  != to ) continue;
-					if ( start != 0 && mailVec[i].date < start ) continue;
-					if ( end != 0 && mailVec[i].date > end ) continue;
+		int c = results.count();
+		bool first = true;
+		for ( int i = 1; i < MAXMAILNUM && c != 0; i++ ) {
+			if ( results[i] ){
+				if ( from != "" && mailVec[i].from != from ) continue;
+				if ( to != "" && mailVec[i].to  != to ) continue;
+				if ( start != 0 && mailVec[i].date < start ) continue;
+				if ( end != 0 && mailVec[i].date > end ) continue;
 
-					if ( first ) {
-						cout << i;
-						c--;
-						first = false;
-					} else {
-						cout << ' ' << i;
-						c--;
-					}
+				if ( first ) {
+					cout << i;
+					c--;
+					first = false;
+				} else {
+					cout << ' ' << i;
+					c--;
 				}
 			}
-			if ( first ) cout << "-\n";
-			else cout << '\n';
-		} else if ( to != "" ) { // if using '-t' flag but no '-f' flag
-			int c = results.count();
-			bool first = true;
-			for ( int i = 1; i < MAXMAILNUM && c != 0; i++ ) {
-				if ( results[i] ){
-					if ( to != "" && mailVec[i].to != to ) continue;
-					if ( start != 0 && mailVec[i].date < start ) continue;
-					if ( end != 0 && mailVec[i].date > end ) continue;
-
-					if ( first ) {
-						cout << i;
-						c--;
-						first = false;
-					} else {
-						cout << ' ' << i;
-						c--;
-					}
-				}
-			}
-			if ( first ) cout << "-\n";
-			else cout << '\n';
-		} else { // no '-f', '-t' flags are used
-			int c = results.count();
-			bool first = true;
-			for ( int i = 1; i < MAXMAILNUM && c != 0; i++ ) {
-				if ( results[i] ){
-					if ( start != 0 && mailVec[i].date < start ) continue;
-					if ( end != 0 && mailVec[i].date > end ) continue;
-
-					if ( first ) {
-						cout << i;
-						c--;
-						first = false;
-					} else {
-						cout << ' ' << i;
-						c--;
-					}
-				}
-			}
-			if ( first ) cout << "-\n";
-			else cout << '\n';
 		}
+		if ( first ) cout << "-\n";
+		else cout << '\n';
 	}
 	return;
 }
@@ -387,22 +286,6 @@ void Mail::mailInfo() {
 	printf("--------------------------------------------------\n");
 	printf("There are %d alphanumeric chracters in the mail.\n", char_count);
 	printf("--------------------------------------------------\n");
-}
-
-void compute(stack<bool>& result, string oprtor) { // compute the result according to the operator
-	if ( oprtor == "!" ) {
-		bool operand = result.top();
-		result.pop();
-		result.push(!operand);
-	} else if ( oprtor == "|" ) {
-		bool operand1 = result.top(); result.pop();
-		bool operand2 = result.top(); result.pop();
-		result.push(operand1 || operand2);
-	} else if ( oprtor == "&" ) {
-		bool operand1 = result.top(); result.pop();
-		bool operand2 = result.top(); result.pop();
-		result.push(operand1 && operand2);
-	}
 }
 
 string precedence[3] = { "|", "&", "!" };
@@ -476,49 +359,4 @@ void bsetexps(bitset<MAXMAILNUM>& results, vector<string>& split) {
 	}
 	results |= wordzz.top();
 	return;
-}
-
-bool exps(unordered_set<string>& words, vector<string>& split) {
-	stack<bool> result;
-	stack<string> oprtor;
-	for ( int i = 0; i < split.size(); ++i ) {
-		if ( isalnum(split[i][0]) ) { // if keyword
-			if ( words.find(split[i]) == words.end() ) result.push(false); 
-			else result.push(true);
-		} else { // if operator
-			if ( oprtor.empty() == true ) oprtor.push(split[i]); // the stack is empty
-			else {
-				if ( split[i] == "(" ) oprtor.push("("); // '(' need to be done first
-				else if ( split[i] == ")" ) { 
-					while ( oprtor.top() != "(" )  { // do every thing between '(', ')'
-						compute(result, oprtor.top());
-						oprtor.pop();
-					}
-					oprtor.pop();
-				} else { // operator !, &, |
-					while ( oprtor.empty() == false && compOP(split[i], oprtor.top()) == true ) {
-						compute(result, oprtor.top());
-						oprtor.pop();
-					}
-					oprtor.push(split[i]);
-				}
-			}
-		}
-	}
-	while ( oprtor.empty() == false ) { // do the rest operator (neccesary?)
-		compute(result, oprtor.top());
-		oprtor.pop();
-	}
-	return result.top();
-}
-
-void MailBox::mapSize() {
-	printf("sizeof MailMap: %lu\n", mailVec.size());
-	int count = 0;
-	for ( auto p = fromState.begin(); p != fromState.end(); ++p ) count += p->second.id.size(); 
-	printf("sizeof FromMap: %lu, %d\n", fromState.size(), count); 
-	count = 0;
-	for ( auto p = toState.begin(); p != toState.end(); ++p ) count += p->second.id.size(); 
-	printf("sizeof ToMap: %lu, %d\n", toState.size(), count); 
-	printf("sizeof CharCountMap: %d\n", charCountMap.size());
 }
