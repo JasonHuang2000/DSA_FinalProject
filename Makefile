@@ -1,4 +1,4 @@
-CC:=g++ -std=c++17
+CC:=g++ -std=c++17 -O3
 obj:= AVLTree.o MailBox_func.o MailBox_main.o 
 exe:=run
 
