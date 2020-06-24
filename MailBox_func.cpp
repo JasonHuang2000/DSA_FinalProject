@@ -8,7 +8,7 @@ char op[5] = { '(', ')', '!', '&', '|' };
 unordered_map<string, vector<int>> kwordmap;
 unordered_map<string, bitset<MAXMAILNUM>> bwords;
 
-void processInput(string& path, string& from, string& to, int64_t& date_ll, int& id, int& char_count) {
+void processInput(string& path, string& from, string& to, int64_t& date_ll, int& id, int& char_count, string& preview, string& subject) {
 	ifstream fin(path);
 	if ( fin.is_open() == true ) {
 		string line = "";
@@ -42,6 +42,7 @@ void processInput(string& path, string& from, string& to, int64_t& date_ll, int&
 		// subject
 		getline(fin, line);
 		string tmp = line.substr(9);
+		subject = tmp;
 		string word = "";
 		for ( int i = 0; i < tmp.size(); i++ ) {
 			if ( isalnum(tmp[i]) ) {
@@ -82,8 +83,13 @@ void processInput(string& path, string& from, string& to, int64_t& date_ll, int&
 
 		// content
 		getline(fin, line);
+		int cur = 0;
 		while ( getline(fin, line) ) {
 			for ( int i = 0; i < line.size(); i++ ) {
+				if ( cur < 45 ) {
+					cur += 1;
+					preview += line[i];
+				}
 				if ( isalnum(line[i]) ) {
 					word += tolower(line[i]);
 					char_count++;
@@ -204,13 +210,14 @@ void MailBox::add(string& path) {
 		int char_count = 0;
 		if ( met[id] == false ) { // if mail hasn't been added
 
-			string from, to;
+			string from, to, preview, subject;
 			met[id] = true;	
 			int64_t date;
 
-			processInput(path, from, to, date, id, char_count);
+			processInput(path, from, to, date, id, char_count, preview, subject);
+			if ( preview.size() >= 45 ) preview += "...";
 
-			Mail mail(from, to, date, id, char_count);
+			Mail mail(from, to, date, id, char_count, preview, subject);
 			mailVec[id] = mail;
 
 		} else {
@@ -279,12 +286,13 @@ void Mail::mailInfo() {
 	printf("--------------------------------------------------\n");
 	printf("                  Mail Info                       \n");
 	printf("--------------------------------------------------\n");
-	cout << "From      " << from << endl;
-	cout << "To        " << to << endl;
-	cout << "Date      " << date << endl;
-	cout << "Mail-id   " << id << endl;
+	cout << "Mail ID   " << id << endl;
+	cout << "Tag       " << "None" << endl;
+	cout << "Subject   " << subject << endl;
+	cout << "From/To   " << from << '/' << to << endl;
+	cout << "Time      " << date/100000000 << '/' << (date/1000000)%100 << '/' << (date/10000)%100 << ' ' << (date/100)%100 << ':' << (date%100) << endl;
 	printf("--------------------------------------------------\n");
-	printf("There are %d alphanumeric chracters in the mail.\n", char_count);
+	cout << preview << endl;
 	printf("--------------------------------------------------\n");
 }
 

@@ -10,8 +10,17 @@ int main(void) {
 		if ( operation == "add" ) {
 			string filePath;
 			cin >> filePath;
-			/* cout << "add " << filePath << endl; */
-			mailbox.add(filePath);	
+			if ( filePath == "all" ) {
+				for ( int i = 1; i <= 10000; ++i ) {
+					filePath = "MailData/mail" + to_string(i);
+					mailbox.add(filePath);
+				}
+			 } else if ( filePath == "half" ) {
+				 for ( int i = 1; i <= 5000; ++i ) {
+					filePath = "MailData/mail" + to_string(i);
+					mailbox.add(filePath);
+				 }
+			 } else mailbox.add(filePath);	
 		} else if ( operation == "remove" ) {
 			int target_id;
 			cin >> target_id;
@@ -28,11 +37,14 @@ int main(void) {
 			processQuery(input, from, to, start, end, split);
 			mailbox.query(from, to, start, end, split);
 			split.clear();
+		} else if ( operation == "info" ) {
+			string token;
+			while ( cin >> token ) {
+				if ( isdigit(token[0]) ) {
+					mailbox.mailInfo(stoi(token));
+				}
+			}
 		}
 	}
-	/* mailbox.AVLtrvs(); */
-	/* mailbox.FROMtrvs(); */
-	/* mailbox.TOtrvs(); */
-	/* mailbox.WORDtrvs(); */
 	return 0;
 }

@@ -19,8 +19,10 @@ struct Mail { // store the infomation of a mail.
 	int char_count;
 	string from;
 	string to;
+	string preview;
+	string subject;
 	// function
-	Mail(string _from, string _to, int64_t _date, int _id, int _char_count) : date(_date), id(_id), char_count(_char_count), from(_from), to(_to) { }
+	Mail(string _from, string _to, int64_t _date, int _id, int _char_count, string preview, string subject) : date(_date), id(_id), char_count(_char_count), from(_from), to(_to), preview(preview), subject(subject) { }
 	void mailInfo();
 };
 
@@ -79,7 +81,7 @@ class MailBox { // storage for Mail.
 
 	public:
 		MailBox() {
-			mailVec.resize(MAXMAILNUM, Mail("", "", 0, 0, 0));
+			mailVec.resize(MAXMAILNUM, Mail("", "", 0, 0, 0, "", ""));
 		}
 		~MailBox() { 
 			mailVec.clear();
@@ -89,10 +91,11 @@ class MailBox { // storage for Mail.
 		void remove(int target_id);
 		void longest();
 		void query(string& from, string& to, int64_t& start, int64_t& end, vector<string>& split); 
+		void mailInfo(int id) { mailVec[id].mailInfo(); }
 };
 
 // other function
-void processInput( string& path, string& from, string& to, int64_t& date, int& id, int& char_count);
+void processInput( string& path, string& from, string& to, int64_t& date, int& id, int& char_count, string& preview, string& subject);
 void processQuery(string& input, string& from, string& to, int64_t& start, int64_t& end, vector<string>& split);
 void bsetcompute(stack<string>& wordzz, string& oprtor);
 void bsetexps(bitset<MAXMAILNUM>& results, vector<string>& split);
