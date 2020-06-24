@@ -3,24 +3,12 @@
 #include <sstream>
 #include <cctype>
 
-map<string, int> month2int;
+unordered_map<string, int> month2int;
 char op[5] = { '(', ')', '!', '&', '|' };
+unordered_map<string, vector<int>> kwordmap;
+unordered_map<string, bitset<MAXMAILNUM>> bwords;
 
-bool dateComp(int* a, int* b) { // is date a happen after/simultaneously date b ?
-	if ( a[0] < b[0] ) return false;
-	else if ( a[0] == b[0] ) {
-		if ( a[1] < b[1] ) return false;
-		else if ( a[1] == b[1] ) {
-			if ( a[2] < b[2] ) return false;
-			else if ( a[2] == b[2] ) {
-				if ( a[3] < b[3] ) return false;
-			}
-		}
-	}
-	return true;	
-}
-
-void processInput( string& path, string& from, string& to, int64_t& date_ll, int& id, int& char_count, unordered_set<string>& words ) {
+void processInput(string& path, string& from, string& to, int64_t& date_ll, int& id, int& char_count) {
 	ifstream fin(path);
 	if ( fin.is_open() == true ) {
 		string line = "";
@@ -60,12 +48,30 @@ void processInput( string& path, string& from, string& to, int64_t& date_ll, int
 				word += tolower(tmp[i]);
 			}
 			else if ( word.empty() == false ) {
-				words.insert(word);
+
+				auto ff = bwords.find(word);
+				if ( ff == bwords.end() ){ // word is not added yet
+					bitset<MAXMAILNUM> temp;
+					temp[id] = true;
+					bwords.insert(pair<string, bitset<MAXMAILNUM>>(word, temp));
+				} else {
+					ff->second[id] = true;
+				}
+
 				word.clear();
 			}
 		}
 		if ( word.empty() == false ) {
-			words.insert(word);
+
+			auto ff = bwords.find(word);
+			if ( ff == bwords.end() ){ // word is not added yet
+				bitset<MAXMAILNUM> temp;
+				temp[id] = true;
+				bwords.insert(pair<string, bitset<MAXMAILNUM>>(word, temp));
+			} else {
+				ff->second[id] = true;
+			}
+
 			word.clear();
 		}
 
@@ -83,12 +89,30 @@ void processInput( string& path, string& from, string& to, int64_t& date_ll, int
 					char_count++;
 				}
 				else if ( word.empty() == false ) {
-					words.insert(word);
+
+					auto ff = bwords.find(word);
+					if ( ff == bwords.end() ){ // word is not added yet
+						bitset<MAXMAILNUM> temp;
+						temp[id] = true;
+						bwords.insert(pair<string, bitset<MAXMAILNUM>>(word, temp));
+					} else {
+						ff->second[id] = true;
+					}
+
 					word.clear();
 				}
 			}
 			if ( word.empty() == false ) {
-				words.insert(word);
+
+				auto ff = bwords.find(word);
+				if (ff == bwords.end()){ // word is not added yet
+					bitset<MAXMAILNUM> temp;
+					temp[id] = true;
+					bwords.insert(pair<string, bitset<MAXMAILNUM>>(word, temp));
+				} else {
+					ff->second[id] = true;
+				}
+
 				word.clear();
 			}
 		}
@@ -104,7 +128,7 @@ int getOperator(char c) { // if operator, return the index of op; else, return -
 }  
 
 void processQuery(string& input, string& from, string& to, int64_t& start, int64_t& end, vector<string>& split) {
-	stringstream ss(input);		
+	stringstream ss(input);
 	string token;
 	getline(ss, token, ' ');
 	while ( getline(ss, token, ' ') ) {
@@ -130,12 +154,14 @@ void processQuery(string& input, string& from, string& to, int64_t& start, int64
 				if ( token.size() - 1 > pos ) {
 					end = stoll(token.substr(pos+1,12));
 				}
+
 			}
 		} else { // expression
 
 			string word = "";
-			int idx;
+			int idx = 0;
 			for ( int i = 0; i < token.size(); i++ ) {
+				/* cout << i << ": " << token[i] << endl; */ 
 				if ( (idx = getOperator(token[i])) == -1 ) { // part of a word
 					word += tolower(token[i]);
 				} else { // we met an operator
@@ -173,70 +199,40 @@ void MailBox::add(string& path) {
 		}
 	}
 
-	if ( IDState.find(id) == IDState.end() ) { // if mail is not in the box right now
+	// if ( IDState.find(id) == IDState.end() ) { // if mail is not in the box right now
+	if ( idstate[id] == false ) { // if mail is not in the box right now
 		int char_count = 0;
-		string from, to;
 		if ( met[id] == false ) { // if mail hasn't been added
 
+			string from, to;
 			met[id] = true;	
 			int64_t date;
-			unordered_set<string> _words;
 
-			processInput(path, from, to, date, id, char_count, _words);
+			processInput(path, from, to, date, id, char_count);
 
 			Mail mail(from, to, date, id, char_count);
 			mailVec[id] = mail;
-			wordsVec[id] = _words;
-			_words.clear();
 
 		} else {
 			char_count = mailVec[id].char_count;
-			from = mailVec[id].from;
-			to = mailVec[id].to;
 		}
 
 		charCountMap.insert(char_count, id);
 		
-		auto fpos = fromState.find(from);
-		if ( fpos == fromState.end() ) {
-			FromElem fromElem;
-			fromElem.id.insert(id);
-			fromState.insert(pair<string, FromElem>(from, fromElem));
-		} else fpos->second.id.insert(id);
+		idstate[id] = true;
+		cout << idstate.count() << '\n';
 
-		auto tpos = toState.find(to);
-		if ( tpos == toState.end() ) {
-			ToElem toElem;
-			toElem.id.insert(id);
-			toState.insert(pair<string, ToElem>(to, toElem));
-		} else tpos->second.id.insert(id);
-
-		IDState.insert(id);
-		printf("%lu\n", IDState.size());
-
-	} else printf("-\n"); 
+	} else cout << "-\n"; 
 }
 
 void MailBox::remove(int target_id) {
-	auto IDptr = IDState.find(target_id);
-	if ( IDptr != IDState.end() ) { // the [target_id] mail is in the box right now
+
+	if ( idstate[target_id] == true ) {
 		int char_count = mailVec[target_id].char_count;
-		string from = mailVec[target_id].from;
-		string to = mailVec[target_id].to;
-
 		charCountMap.erase(char_count, target_id);
-
-		auto fpos = fromState.find(from);
-		fpos->second.id.erase(target_id);
-		if ( fpos->second.id.empty() == true ) fromState.erase(fpos);
-
-		auto tpos = toState.find(to);
-		tpos->second.id.erase(target_id);
-		if ( tpos->second.id.empty() == true ) toState.erase(tpos);
-
-		IDState.erase(target_id);
-		printf("%lu\n", IDState.size());
-	} else printf("-\n");
+		idstate[target_id] = false;
+		cout << idstate.count() << '\n';
+	} else cout << "-\n";
 }
 
 void MailBox::longest() {
@@ -245,74 +241,37 @@ void MailBox::longest() {
 
 void MailBox::query(string& from, string& to, int64_t& start, int64_t& end, vector<string>& split) {
 
-	vector<int> id_matched;
+	bitset<MAXMAILNUM> results;
+	bsetexps(results, split);
+	results &= idstate;
 
-	// query debug
-	/* cout << "---------------------" << endl; */
-	/* cout << "From: " << from << endl; */
-	/* cout << "To: " << to << endl; */
-	/* cout << "Start: " << start << endl; */
-	/* cout << "End: " << end << endl; */
-	/* cout << "---------------------" << endl; */
+	if ( results.count() == 0 ) {
+		cout << "-\n";
+		return;
+	} else {
+		int c = results.count();
+		bool first = true;
+		for ( int i = 1; i < MAXMAILNUM && c != 0; i++ ) {
+			if ( results[i] ){
+				if ( from != "" && mailVec[i].from != from ) continue;
+				if ( to != "" && mailVec[i].to  != to ) continue;
+				if ( start != 0 && mailVec[i].date < start ) continue;
+				if ( end != 0 && mailVec[i].date > end ) continue;
 
-	if ( from != "" ) { // if using '-f' flag
-
-		auto fp = fromState.find(from);
-		if ( fp == fromState.end() ) printf("-\n");
-		else {
-			auto pass = &(fp->second.id);
-			for ( auto p = pass->begin(); p != pass->end(); ++p ) {
-				if ( to != "" && mailVec[*p].to != to ) continue; // "to" not matched	
-				if ( start != 0 && mailVec[*p].date < start ) continue; // "start" not matched
-				if ( end != 0 && end <  mailVec[*p].date ) continue; // "end" not matched
-				if ( exps(wordsVec[*p], split) ) id_matched.push_back(*p);
-			}
-			if ( id_matched.empty() ) printf("-\n");
-			else {
-				/* sort(id_matched.begin(), id_matched.end()); */
-				int s = id_matched.size();
-				for ( int i = 0; i < s; i++ ) {
-					printf("%d%c", id_matched[i], i == s - 1 ? '\n' : ' ' );
+				if ( first ) {
+					cout << i;
+					c--;
+					first = false;
+				} else {
+					cout << ' ' << i;
+					c--;
 				}
 			}
 		}
-	} else if ( to != "" ) { // if using '-t' flag but no '-f' flag
-
-		auto tp = toState.find(to);
-		if ( tp == toState.end() ) printf("-\n");
-		else {
-			auto pass = &(tp->second.id);
-			for ( auto p = pass->begin(); p != pass->end(); ++p ) {
-				if ( start != 0 && mailVec[*p].date < start ) continue; // "start" not matched
-				if ( end != 0 && end <  mailVec[*p].date ) continue; // "end" not matched
-				if ( exps(wordsVec[*p], split) ) id_matched.push_back(*p);
-			}
-			if ( id_matched.empty() ) printf("-\n");
-			else {
-				/* sort(id_matched.begin(), id_matched.end()); */
-				int s = id_matched.size();
-				for ( int i = 0; i < s; i++ ) {
-					printf("%d%c", id_matched[i], i == s - 1 ? '\n' : ' ' );
-				}
-			}
-		}
-	} else { // no '-f', '-t' flags are used
-
-		for ( auto p = IDState.begin(); p != IDState.end(); ++p ) {
-			if ( start != 0 && mailVec[*p].date < start ) continue; // "start" not matched
-			if ( end != 0 && end < mailVec[*p].date ) continue; // "end" not matched
-			if ( exps(wordsVec[*p], split) ) id_matched.push_back(*p);
-		}
-		if ( id_matched.empty() ) printf("-\n");
-		else {
-			/* sort(id_matched.begin(), id_matched.end()); */
-			int s = id_matched.size();
-			for ( int i = 0; i < s; i++ ) {
-				printf("%d%c", id_matched[i], i == s - 1 ? '\n' : ' ' );
-			}
-		}
+		if ( first ) cout << "-\n";
+		else cout << '\n';
 	}
-	id_matched.clear();
+	return;
 }
 
 // Element Function
@@ -320,29 +279,13 @@ void Mail::mailInfo() {
 	printf("--------------------------------------------------\n");
 	printf("                  Mail Info                       \n");
 	printf("--------------------------------------------------\n");
-	cout << "Mail ID   " << id << endl;
 	cout << "From      " << from << endl;
 	cout << "To        " << to << endl;
-	cout << "Time      " << date/100000000 << '/' << (date/1000000)%100 << '/' << (date/10000)%100 << ' ' << (date/100)%100 << ':' << (date%100) << endl;
+	cout << "Date      " << date << endl;
+	cout << "Mail-id   " << id << endl;
 	printf("--------------------------------------------------\n");
 	printf("There are %d alphanumeric chracters in the mail.\n", char_count);
 	printf("--------------------------------------------------\n");
-}
-
-void compute(stack<bool>& result, string oprtor) { // compute the result according to the operator
-	if ( oprtor == "!" ) {
-		bool operand = result.top();
-		result.pop();
-		result.push(!operand);
-	} else if ( oprtor == "|" ) {
-		bool operand1 = result.top(); result.pop();
-		bool operand2 = result.top(); result.pop();
-		result.push(operand1 || operand2);
-	} else if ( oprtor == "&" ) {
-		bool operand1 = result.top(); result.pop();
-		bool operand2 = result.top(); result.pop();
-		result.push(operand1 && operand2);
-	}
 }
 
 string precedence[3] = { "|", "&", "!" };
@@ -356,26 +299,53 @@ bool compOP(string cur, string last) { // compare the precedence of cur(on-hand)
 	return curi <= lasti;
 }
 
-bool exps(unordered_set<string>& words, vector<string>& split) {
-	stack<bool> result;
+void bsetcompute(stack<bitset<MAXMAILNUM>>& wordzz, string& oprtor) {
+	bitset<MAXMAILNUM> temp;
+
+	if ( oprtor == "!" ) {
+		temp = ~(wordzz.top());
+		wordzz.pop();
+		wordzz.push(temp);
+	} else if ( oprtor == "|" ) {
+		bitset<MAXMAILNUM> temp2;
+		temp |= wordzz.top(); wordzz.pop();
+		temp2 |= wordzz.top(); wordzz.pop();
+		wordzz.push(temp | temp2);
+	} else if ( oprtor == "&" ) {
+		bitset<MAXMAILNUM> temp2;
+		temp |= wordzz.top(); wordzz.pop();
+		temp2 |= wordzz.top(); wordzz.pop();
+		wordzz.push(temp & temp2);
+	}
+
+	return;
+}
+
+void bsetexps(bitset<MAXMAILNUM>& results, vector<string>& split) {
 	stack<string> oprtor;
+	stack<bitset<MAXMAILNUM>> wordzz;
 	for ( int i = 0; i < split.size(); ++i ) {
-		if ( isalnum(split[i][0]) ) { // if keyword
-			if ( words.find(split[i]) == words.end() ) result.push(false); 
-			else result.push(true);
-		} else { // if operator
-			if ( oprtor.empty() == true ) oprtor.push(split[i]); // the stack is empty
+		if ( isalnum(split[i][0]) ) {
+			auto ff = bwords.find(split[i]);
+			if ( ff == bwords.end() ) { // if keyword not exist
+				bitset<MAXMAILNUM> temp;
+				wordzz.push(temp);
+			} else {
+				wordzz.push(bwords[split[i]]);
+			}
+		} else { // if is an operator
+			if ( oprtor.empty() == true ) oprtor.push(split[i]);
 			else {
 				if ( split[i] == "(" ) oprtor.push("("); // '(' need to be done first
-				else if ( split[i] == ")" ) { 
+				else if ( split[i] == ")" ) {
 					while ( oprtor.top() != "(" )  { // do every thing between '(', ')'
-						compute(result, oprtor.top());
+						bsetcompute(wordzz, oprtor.top());
 						oprtor.pop();
 					}
 					oprtor.pop();
 				} else { // operator !, &, |
 					while ( oprtor.empty() == false && compOP(split[i], oprtor.top()) == true ) {
-						compute(result, oprtor.top());
+						bsetcompute(wordzz, oprtor.top());
 						oprtor.pop();
 					}
 					oprtor.push(split[i]);
@@ -384,19 +354,9 @@ bool exps(unordered_set<string>& words, vector<string>& split) {
 		}
 	}
 	while ( oprtor.empty() == false ) { // do the rest operator (neccesary?)
-		compute(result, oprtor.top());
+		bsetcompute(wordzz, oprtor.top());
 		oprtor.pop();
 	}
-	return result.top();
-}
-
-void MailBox::mapSize() {
-	printf("sizeof MailMap: %lu\n", mailVec.size());
-	int count = 0;
-	for ( auto p = fromState.begin(); p != fromState.end(); ++p ) count += p->second.id.size(); 
-	printf("sizeof FromMap: %lu, %d\n", fromState.size(), count); 
-	count = 0;
-	for ( auto p = toState.begin(); p != toState.end(); ++p ) count += p->second.id.size(); 
-	printf("sizeof ToMap: %lu, %d\n", toState.size(), count); 
-	printf("sizeof CharCountMap: %d\n", charCountMap.size());
+	results |= wordzz.top();
+	return;
 }

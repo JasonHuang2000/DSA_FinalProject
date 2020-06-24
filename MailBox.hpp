@@ -1,9 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <map> // std::multiset (rb-tree)
-#include <set>
-#include <unordered_set>
+#include <bitset>
 #include <unordered_map>
 #include <stack>
 #include <algorithm>
@@ -13,8 +11,6 @@ using namespace std;
 
 class MailBox;
 struct Mail;
-struct FromElem;
-struct ToElem;
 
 struct Mail { // store the infomation of a mail.
 	// variable
@@ -26,15 +22,6 @@ struct Mail { // store the infomation of a mail.
 	// function
 	Mail(string _from, string _to, int64_t _date, int _id, int _char_count) : date(_date), id(_id), char_count(_char_count), from(_from), to(_to) { }
 	void mailInfo();
-};
-
-struct FromElem {
-	// variable
-	set<int> id;	
-};
-struct ToElem {
-	// variable
-	set<int> id;
 };
 
 template <class T>
@@ -84,66 +71,28 @@ class MailBox { // storage for Mail.
 	private:
 		bool met[MAXMAILNUM] = {false};
 		// the state within the box right now
-		set<int> IDState;
-		unordered_map<string, FromElem> fromState;
-		unordered_map<string, ToElem> toState;
+		bitset<MAXMAILNUM> idstate;
+
 		// vector storing info by id
 		vector<Mail> mailVec;
-		vector<unordered_set<string>> wordsVec;
-
 		AVLTree<int> charCountMap;
 
 	public:
 		MailBox() {
 			mailVec.resize(MAXMAILNUM, Mail("", "", 0, 0, 0));
-			wordsVec.resize(MAXMAILNUM); 
 		}
 		~MailBox() { 
-			IDState.clear();
-			fromState.clear();
-			toState.clear();
+			mailVec.clear();
 			charCountMap.clear();
-			wordsVec.clear();
 		}
 		void add(string& path);
 		void remove(int target_id);
 		void longest();
 		void query(string& from, string& to, int64_t& start, int64_t& end, vector<string>& split); 
-
-		// debug function
-		void mapSize();
-		void AVLtrvs() { charCountMap.inorder_trvs(charCountMap.root); }
-		/* void FROMtrvs() { */
-		/* 	for ( auto p = fromMap.begin(); p != fromMap.end(); ++p ) { */
-		/* 		cout << p->first << " { "; */
-		/* 		for ( auto i = p->second.IDMap.begin(); i != p->second.IDMap.end(); ++i ) */
-		/* 			cout << i->first << ' '; */	
-		/* 		cout << '}' << endl; */
-		/* 	} */
-		/* } */
-		/* void TOtrvs() { */
-		/* 	for ( auto p = toMap.begin(); p != toMap.end(); ++p ) { */
-		/* 		cout << p->first << " { "; */
-		/* 		for ( auto i = p->second.IDMap.begin(); i != p->second.IDMap.end(); ++i ) */
-		/* 			cout << i->first << ' '; */	
-		/* 		cout << '}' << endl; */
-		/* 	} */
-		/* } */
-		/* void WORDtrvs() { */
-		/* 	for ( int i = 0; i < wordsMap.size(); ++i ) { */
-		/* 		if ( wordsMap[i].empty() == false ) { */
-		/* 			printf("(%d) ", i); */
-		/* 			for ( auto p = wordsMap[i].begin(); p != wordsMap[i].end(); ++p ) */ 
-		/* 				cout << *p << ' '; */
-		/* 			cout << endl; */
-		/* 		} */
-		/* 	} */
-		/* } */
 };
 
 // other function
-bool dateComp(int* a, int* b);
-void processInput( string& path, string& from, string& to, int64_t& date, int& id, int& char_count, unordered_set<string>& keywords);
+void processInput( string& path, string& from, string& to, int64_t& date, int& id, int& char_count);
 void processQuery(string& input, string& from, string& to, int64_t& start, int64_t& end, vector<string>& split);
-bool exps(unordered_set<string>& words, vector<string>& split);
-
+void bsetcompute(stack<string>& wordzz, string& oprtor);
+void bsetexps(bitset<MAXMAILNUM>& results, vector<string>& split);
