@@ -8,19 +8,19 @@ int main(void) {
 	string operation; 
 	while ( cin >> operation ) {
 		if ( operation == "add" ) {
-			string filePath;
-			cin >> filePath;
+			string filePath, tag;
+			processAdd(filePath, tag);	
 			if ( filePath == "all" ) {
 				for ( int i = 1; i <= 10000; ++i ) {
 					filePath = "MailData/mail" + to_string(i);
-					mailbox.add(filePath);
+					mailbox.add(filePath, tag);
 				}
 			 } else if ( filePath == "half" ) {
 				 for ( int i = 1; i <= 5000; ++i ) {
 					filePath = "MailData/mail" + to_string(i);
-					mailbox.add(filePath);
+					mailbox.add(filePath, tag);
 				 }
-			 } else mailbox.add(filePath);	
+			 } else mailbox.add(filePath, tag);	
 		} else if ( operation == "remove" ) {
 			int target_id;
 			cin >> target_id;
@@ -38,11 +38,18 @@ int main(void) {
 			mailbox.query(from, to, start, end, split);
 			split.clear();
 		} else if ( operation == "info" ) {
-			string token;
-			while ( cin >> token ) {
-				if ( isdigit(token[0]) ) {
-					mailbox.mailInfo(stoi(token));
-				}
+			vector<int> IDs;
+			string tag;
+			processTag(IDs, tag);
+			if ( IDs.size() != 0 ) {
+				for ( int i = 0; i < IDs.size(); i++ )
+					mailbox.mailInfo(IDs[i]);
+			} else if ( tag != "" ) {
+				mailbox.tagInfo(tag);
+			} else {
+				puts("[info usage]");
+				puts("$ info [id] [id] ...  [id] := positive integer");
+				puts("$ info [tag name]     [tag name] := alphabetic string");
 			}
 		}
 	}

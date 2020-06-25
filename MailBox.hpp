@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <bitset>
+#include <unordered_set>
 #include <unordered_map>
 #include <stack>
 #include <algorithm>
@@ -10,7 +11,6 @@
 using namespace std;
 
 class MailBox;
-struct Mail;
 
 struct Mail { // store the infomation of a mail.
 	// variable
@@ -21,9 +21,21 @@ struct Mail { // store the infomation of a mail.
 	string to;
 	string preview;
 	string subject;
+	string tag;
 	// function
 	Mail(string _from, string _to, int64_t _date, int _id, int _char_count, string preview, string subject) : date(_date), id(_id), char_count(_char_count), from(_from), to(_to), preview(preview), subject(subject) { }
 	void mailInfo();
+};
+
+struct Tag {
+	// variable
+	string description;
+	bitset<MAXMAILNUM> IDSet;	
+	// function
+	int size() { return (int)(IDSet.count()); }
+	void addDescription(string& des) { description = des; }
+	int64_t findOldest();
+	int64_t findLatest();
 };
 
 template <class T>
@@ -70,15 +82,6 @@ public:
 
 class MailBox { // storage for Mail.
 
-	private:
-		bool met[MAXMAILNUM] = {false};
-		// the state within the box right now
-		bitset<MAXMAILNUM> idstate;
-
-		// vector storing info by id
-		vector<Mail> mailVec;
-		AVLTree<int> charCountMap;
-
 	public:
 		MailBox() {
 			mailVec.resize(MAXMAILNUM, Mail("", "", 0, 0, 0, "", ""));
@@ -87,15 +90,30 @@ class MailBox { // storage for Mail.
 			mailVec.clear();
 			charCountMap.clear();
 		}
-		void add(string& path);
+		void add(string& path, string& tag);
 		void remove(int target_id);
 		void longest();
 		void query(string& from, string& to, int64_t& start, int64_t& end, vector<string>& split); 
-		void mailInfo(int id) { mailVec[id].mailInfo(); }
+		void mailInfo(int id) { 
+			if ( idstate[id] == false ) printf("Mail %d does not exist.\n", id);
+			else mailVec[id].mailInfo(); 
+		}
+		void tagInfo(string& tag);
+
+		bool met[MAXMAILNUM] = {false};
+		// the state within the box right now
+		bitset<MAXMAILNUM> idstate;
+		// tags
+		unordered_map<string, Tag> tags;
+		// vector storing info by id
+		vector<Mail> mailVec;
+		AVLTree<int> charCountMap;
 };
 
 // other function
-void processInput( string& path, string& from, string& to, int64_t& date, int& id, int& char_count, string& preview, string& subject);
+void processAdd(string& path, string& tag);
+void processInput(string& path, string& from, string& to, int64_t& date, int& id, int& char_count, string& preview, string& subject);
 void processQuery(string& input, string& from, string& to, int64_t& start, int64_t& end, vector<string>& split);
+void processTag(vector<int>& IDs, string& tag);
 void bsetcompute(stack<string>& wordzz, string& oprtor);
 void bsetexps(bitset<MAXMAILNUM>& results, vector<string>& split);

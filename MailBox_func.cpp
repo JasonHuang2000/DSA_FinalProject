@@ -8,16 +8,30 @@ char op[5] = { '(', ')', '!', '&', '|' };
 unordered_map<string, vector<int>> kwordmap;
 unordered_map<string, bitset<MAXMAILNUM>> bwords;
 
+void processAdd(string& path, string& tag) {
+	string token, line;
+	getline(cin, line);
+	stringstream ss(line);
+	getline(ss, token, ' ');
+	while ( getline(ss, token, ' ') ) {
+		if ( token[0] == '-' ) {
+			if ( token[1] == 'g' ) {
+				getline(ss, tag, ' ');
+			}
+		} else {
+			path = token;
+		}
+	}
+}
+
 void processInput(string& path, string& from, string& to, int64_t& date_ll, int& id, int& char_count, string& preview, string& subject) {
 	ifstream fin(path);
 	if ( fin.is_open() == true ) {
 		string line = "";
-
 		// from
 		getline(fin, line); 
 		from = line.substr(6);
 		for ( int i = 0; i < from.size(); i++ ) from[i] = tolower(from[i]);
-
 		// date
 		getline(fin, line);
 		stringstream ss(line);
@@ -34,11 +48,9 @@ void processInput(string& path, string& from, string& to, int64_t& date_ll, int&
 			}
 		}
 		date_ll = (int64_t)date[0]*100000000 + date[1]*1000000 + date[2]*10000 + date[3];
-
 		// id
 		getline(fin, line);
 		id = stoi(line.substr(12));
-
 		// subject
 		getline(fin, line);
 		string tmp = line.substr(9);
@@ -49,7 +61,6 @@ void processInput(string& path, string& from, string& to, int64_t& date_ll, int&
 				word += tolower(tmp[i]);
 			}
 			else if ( word.empty() == false ) {
-
 				auto ff = bwords.find(word);
 				if ( ff == bwords.end() ){ // word is not added yet
 					bitset<MAXMAILNUM> temp;
@@ -58,12 +69,10 @@ void processInput(string& path, string& from, string& to, int64_t& date_ll, int&
 				} else {
 					ff->second[id] = true;
 				}
-
 				word.clear();
 			}
 		}
 		if ( word.empty() == false ) {
-
 			auto ff = bwords.find(word);
 			if ( ff == bwords.end() ){ // word is not added yet
 				bitset<MAXMAILNUM> temp;
@@ -72,15 +81,12 @@ void processInput(string& path, string& from, string& to, int64_t& date_ll, int&
 			} else {
 				ff->second[id] = true;
 			}
-
 			word.clear();
 		}
-
 		// to
 		getline(fin, line);
 		to = line.substr(4);
 		for ( int i = 0; i < to.size(); i++ ) to[i] = tolower(to[i]);
-
 		// content
 		getline(fin, line);
 		int cur = 0;
@@ -95,7 +101,6 @@ void processInput(string& path, string& from, string& to, int64_t& date_ll, int&
 					char_count++;
 				}
 				else if ( word.empty() == false ) {
-
 					auto ff = bwords.find(word);
 					if ( ff == bwords.end() ){ // word is not added yet
 						bitset<MAXMAILNUM> temp;
@@ -104,12 +109,10 @@ void processInput(string& path, string& from, string& to, int64_t& date_ll, int&
 					} else {
 						ff->second[id] = true;
 					}
-
 					word.clear();
 				}
 			}
 			if ( word.empty() == false ) {
-
 				auto ff = bwords.find(word);
 				if (ff == bwords.end()){ // word is not added yet
 					bitset<MAXMAILNUM> temp;
@@ -118,7 +121,6 @@ void processInput(string& path, string& from, string& to, int64_t& date_ll, int&
 				} else {
 					ff->second[id] = true;
 				}
-
 				word.clear();
 			}
 		}
@@ -140,19 +142,14 @@ void processQuery(string& input, string& from, string& to, int64_t& start, int64
 	while ( getline(ss, token, ' ') ) {
 		if ( token[0] == '-' ) { // flag
 			if ( token[1] == 'f' ) { // -f flag
-
 				size_t pos = token.find_last_of('"');
 				from = token.substr(3, pos-3);
 				for ( int i = 0; i < from.size(); i++ ) from[i] = tolower(from[i]);
-
 			} else if ( token[1] == 't' ) { // -t flag
-
 				size_t pos = token.find_last_of('"');
 				to = token.substr(3, pos-3);
 				for ( int i = 0; i < to.size(); i++ ) to[i] = tolower(to[i]);
-
 			} else { // -d flag
-
 				size_t pos = token.find_first_of('~');
 				if ( pos > 2 ) {
 					start = stoll(token.substr(2,12));
@@ -160,10 +157,8 @@ void processQuery(string& input, string& from, string& to, int64_t& start, int64
 				if ( token.size() - 1 > pos ) {
 					end = stoll(token.substr(pos+1,12));
 				}
-
 			}
 		} else { // expression
-
 			string word = "";
 			int idx = 0;
 			for ( int i = 0; i < token.size(); i++ ) {
@@ -184,7 +179,6 @@ void processQuery(string& input, string& from, string& to, int64_t& start, int64
 					}
 				}
 			}
-
 			if ( word.empty() == false ) { // push the rest word if there is any
 				split.push_back(word);
 				word.clear();
@@ -193,8 +187,21 @@ void processQuery(string& input, string& from, string& to, int64_t& start, int64
 	}
 }
 
+void processTag(vector<int>& IDs, string& tag) {
+	string line, token;
+	getline(cin, line);
+	stringstream ss(line);
+	while ( getline(ss, token, ' ') ) {
+		if ( isdigit(token[0]) ) {
+			IDs.push_back(stoi(token));
+		} else if ( isalpha(token[0]) ) {
+			tag = token;
+		}
+	}
+}
+
 // MailBox function
-void MailBox::add(string& path) {
+void MailBox::add(string& path, string& tag) {
 	if ( month2int.empty() ) { month2int["January"] = 1; month2int["February"] = 2; month2int["March"] = 3; month2int["April"] = 4; month2int["May"] = 5; month2int["June"] = 6; month2int["July"] = 7; month2int["August"] = 8; month2int["September"] = 9; month2int["October"] = 10; month2int["November"] = 11; month2int["December"] = 12; }
 
 	int id = 0;
@@ -218,6 +225,17 @@ void MailBox::add(string& path) {
 			if ( preview.size() >= 45 ) preview += "...";
 
 			Mail mail(from, to, date, id, char_count, preview, subject);
+			if ( tag != "" )  {
+				mail.tag = tag;
+				auto p = tags.find(tag);
+				if ( p == tags.end() ) {
+					Tag tagelem;
+					tagelem.IDSet[id] = true;
+					tags.insert(pair<string, Tag>(tag, tagelem));
+				} else {
+					p->second.IDSet[id] = true;
+				}
+			}
 			mailVec[id] = mail;
 
 		} else {
@@ -237,6 +255,12 @@ void MailBox::remove(int target_id) {
 	if ( idstate[target_id] == true ) {
 		int char_count = mailVec[target_id].char_count;
 		charCountMap.erase(char_count, target_id);
+		string tag = mailVec[target_id].tag;
+		if ( tag != "" ) {
+			tags[tag].IDSet[target_id] = false;
+			if ( tags[tag].IDSet.count() == 0 )
+				tags.erase(tag);
+		}
 		idstate[target_id] = false;
 		cout << idstate.count() << '\n';
 	} else cout << "-\n";
@@ -281,19 +305,31 @@ void MailBox::query(string& from, string& to, int64_t& start, int64_t& end, vect
 	return;
 }
 
-// Element Function
-void Mail::mailInfo() {
-	printf("--------------------------------------------------\n");
-	printf("                  Mail Info                       \n");
-	printf("--------------------------------------------------\n");
-	cout << "Mail ID   " << id << endl;
-	cout << "Tag       " << "None" << endl;
-	cout << "Subject   " << subject << endl;
-	cout << "From/To   " << from << '/' << to << endl;
-	cout << "Time      " << date/100000000 << '/' << (date/1000000)%100 << '/' << (date/10000)%100 << ' ' << (date/100)%100 << ':' << (date%100) << endl;
-	printf("--------------------------------------------------\n");
-	cout << preview << endl;
-	printf("--------------------------------------------------\n");
+void MailBox::tagInfo(string& tag) {
+	auto p = this->tags.find(tag);
+	if ( p == tags.end() ) cout << "There's no mail tagged " << tag << '.' << endl;
+	else {
+		int64_t oldest = 999999999999;
+		int64_t latest = 0;
+		auto idset = p->second.IDSet;
+		for ( int i = 0; i < idset.size(); i++ ) {
+			if ( idset[i] ) {
+				if ( mailVec[i].date < oldest ) oldest = mailVec[i].date;
+				if ( mailVec[i].date > latest ) latest = mailVec[i].date;
+			}
+		}
+		printf("--------------------------------------------------\n");
+		printf("                  Tag Info                        \n");
+		printf("--------------------------------------------------\n");
+		cout << "Name         " << tag << endl;
+		printf( "Oldest       %04lld/%02lld/%02lld %02lld:%02lld\n", oldest/100000000, (oldest/1000000)%100, (oldest/10000)%100, (oldest/100)%100, (oldest%100));
+		printf( "Latest       %04lld/%02lld/%02lld %02lld:%02lld\n", latest/100000000, (latest/1000000)%100, (latest/10000)%100, (latest/100)%100, (latest%100));
+		printf("--------------------------------------------------\n");
+		if ( p->second.description != "" )
+			cout << "Description: " << p->second.description << endl;
+		printf("There are %d mails tagged %s.\n", p->second.size(), tag.c_str()); 
+		printf("--------------------------------------------------\n");
+	}
 }
 
 string precedence[3] = { "|", "&", "!" };
@@ -367,4 +403,19 @@ void bsetexps(bitset<MAXMAILNUM>& results, vector<string>& split) {
 	}
 	results |= wordzz.top();
 	return;
+}
+
+// Element Function
+void Mail::mailInfo() {
+	printf("--------------------------------------------------\n");
+	printf("                  Mail Info                       \n");
+	printf("--------------------------------------------------\n");
+	cout << "Mail ID   " << id << endl;
+	cout << "Tag       " << ( tag == "" ? "None" : tag ) << endl;
+	cout << "Subject   " << subject << endl;
+	cout << "From/To   " << from << '/' << to << endl;
+	printf( "Time      %04lld/%02lld/%02lld %02lld:%02lld\n", date/100000000, (date/1000000)%100, (date/10000)%100, (date/100)%100, (date%100));
+	printf("--------------------------------------------------\n");
+	cout << preview << endl;
+	printf("--------------------------------------------------\n");
 }
