@@ -187,12 +187,17 @@ void processQuery(string& input, string& from, string& to, int64_t& start, int64
 	}
 }
 
-void processTag(vector<int>& IDs, string& tag) {
+void processTag(vector<int>& IDs, string& tag, string& description) {
 	string line, token;
 	getline(cin, line);
 	stringstream ss(line);
 	while ( getline(ss, token, ' ') ) {
-		if ( isdigit(token[0]) ) {
+		if ( token[0] == '-' ) {
+			if ( token[1] == 'D' ) {
+				getline(ss, token, '"');
+				getline(ss, description, '"');
+			}
+		} else if ( isdigit(token[0]) ) {
 			IDs.push_back(stoi(token));
 		} else if ( isalpha(token[0]) ) {
 			tag = token;
@@ -332,6 +337,27 @@ void MailBox::tagInfo(string& tag) {
 	}
 }
 
+void MailBox::addTag(vector<int>& IDs, string& tag) {
+	auto p = tags.find(tag);
+	if ( p == tags.end() ) {
+		Tag tagelem;
+		p = tags.insert(pair<string, Tag>(tag, tagelem)).first;
+	}
+	for ( int i = 0; i < IDs.size(); i++ ) {
+		if ( idstate[IDs[i]] == true ) {
+			mailVec[IDs[i]].tag = tag;
+			p->second.IDSet[IDs[i]] = true;
+			printf("Mail %d are tagged %s\n", IDs[i], tag.c_str());
+		} else printf("Mail %d does not exist.\n", IDs[i]);
+	}
+}
+
+void MailBox::addtagDescription(string& tag, string& description) {
+	auto p = tags.find(tag);
+	if ( p == tags.end() ) cout << "There's no mail tagged " << tag << '.' << endl;
+	else p->second.description = description;
+}
+
 string precedence[3] = { "|", "&", "!" };
 bool compOP(string cur, string last) { // compare the precedence of cur(on-hand) and last(top of the stack)
 	if ( last == "(" ) return false;
@@ -411,9 +437,9 @@ void Mail::mailInfo() {
 	printf("                  Mail Info                       \n");
 	printf("--------------------------------------------------\n");
 	cout << "Mail ID   " << id << endl;
-	cout << "Tag       " << ( tag == "" ? "None" : tag ) << endl;
+	cout << "Tag       " << ( tag == "" ? '-' : tag ) << endl;
 	cout << "Subject   " << subject << endl;
-	cout << "From/To   " << from << '/' << to << endl;
+	cout << "From-To   " << from << '-' << to << endl;
 	printf( "Time      %04lld/%02lld/%02lld %02lld:%02lld\n", date/100000000, (date/1000000)%100, (date/10000)%100, (date/100)%100, (date%100));
 	printf("--------------------------------------------------\n");
 	cout << preview << endl;

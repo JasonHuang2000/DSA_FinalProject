@@ -99,6 +99,8 @@ class MailBox { // storage for Mail.
 			else mailVec[id].mailInfo(); 
 		}
 		void tagInfo(string& tag);
+		void addTag(vector<int>& IDs, string& tag);
+		void addtagDescription(string& tag, string& description);
 
 		bool met[MAXMAILNUM] = {false};
 		// the state within the box right now
@@ -114,6 +116,6 @@ class MailBox { // storage for Mail.
 void processAdd(string& path, string& tag);
 void processInput(string& path, string& from, string& to, int64_t& date, int& id, int& char_count, string& preview, string& subject);
 void processQuery(string& input, string& from, string& to, int64_t& start, int64_t& end, vector<string>& split);
-void processTag(vector<int>& IDs, string& tag);
+void processTag(vector<int>& IDs, string& tag, string& description);
 void bsetcompute(stack<string>& wordzz, string& oprtor);
 void bsetexps(bitset<MAXMAILNUM>& results, vector<string>& split);

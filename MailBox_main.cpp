@@ -39,8 +39,8 @@ int main(void) {
 			split.clear();
 		} else if ( operation == "info" ) {
 			vector<int> IDs;
-			string tag;
-			processTag(IDs, tag);
+			string tag, description;
+			processTag(IDs, tag, description);
 			if ( IDs.size() != 0 ) {
 				for ( int i = 0; i < IDs.size(); i++ )
 					mailbox.mailInfo(IDs[i]);
@@ -50,6 +50,15 @@ int main(void) {
 				puts("[info usage]");
 				puts("$ info [id] [id] ...  [id] := positive integer");
 				puts("$ info [tag name]     [tag name] := alphabetic string");
+			}
+		}  else if ( operation == "tag" ) {
+			vector<int> IDs;
+			string tag, description;
+			processTag(IDs, tag, description);
+			if ( IDs.size() != 0 ) {
+				mailbox.addTag(IDs, tag);
+			} else if ( description != "" ) {
+				mailbox.addtagDescription(tag, description);
 			}
 		}
 	}
