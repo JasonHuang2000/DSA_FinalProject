@@ -54,7 +54,7 @@ void processInput(string& path, string& from, string& to, int64_t& date_ll, int&
 		// subject
 		getline(fin, line);
 		string tmp = line.substr(9);
-		subject = tmp;
+		subject = tmp.substr(0, tmp.size()-1);
 		string word = "";
 		for ( int i = 0; i < tmp.size(); i++ ) {
 			if ( isalnum(tmp[i]) ) {
@@ -358,6 +358,14 @@ void MailBox::addtagDescription(string& tag, string& description) {
 	else p->second.description = description;
 }
 
+void MailBox::google(int id) {
+	if ( idstate[id] == false ) printf("Mail %d does not exist.\n", id);
+	else {
+		string exe = "python3 getUrl.py \"" + mailVec[id].subject + "\"";
+		system(exe.c_str());
+	}
+}
+
 string precedence[3] = { "|", "&", "!" };
 bool compOP(string cur, string last) { // compare the precedence of cur(on-hand) and last(top of the stack)
 	if ( last == "(" ) return false;
@@ -437,7 +445,7 @@ void Mail::mailInfo() {
 	printf("                  Mail Info                       \n");
 	printf("--------------------------------------------------\n");
 	cout << "Mail ID   " << id << endl;
-	cout << "Tag       " << ( tag == "" ? '-' : tag ) << endl;
+	cout << "Tag       " << ( tag == "" ? "-" : tag ) << endl;
 	cout << "Subject   " << subject << endl;
 	cout << "From-To   " << from << '-' << to << endl;
 	printf( "Time      %04lld/%02lld/%02lld %02lld:%02lld\n", date/100000000, (date/1000000)%100, (date/10000)%100, (date/100)%100, (date%100));

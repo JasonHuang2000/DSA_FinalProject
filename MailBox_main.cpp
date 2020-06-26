@@ -60,6 +60,10 @@ int main(void) {
 			} else if ( description != "" ) {
 				mailbox.addtagDescription(tag, description);
 			}
+		} else if ( operation == "google" ) {
+		    int id;
+			cin >> id;
+			mailbox.google(id);
 		}
 	}
 	return 0;

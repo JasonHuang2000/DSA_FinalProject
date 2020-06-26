@@ -101,6 +101,7 @@ class MailBox { // storage for Mail.
 		void tagInfo(string& tag);
 		void addTag(vector<int>& IDs, string& tag);
 		void addtagDescription(string& tag, string& description);
+		void google(int id);
 
 		bool met[MAXMAILNUM] = {false};
 		// the state within the box right now
